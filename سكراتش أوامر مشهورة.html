@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة أوامر سكراتش</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            user-select: none;
+        }
+
+        /* Sidebar Categories */
+        .sidebar {
+            width: 120px;
+            background-color: #ffffff;
+            border-left: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            overflow-y: auto;
+        }
+
+        .category-btn {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: #4d4d4d;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background-color: #e6f0ff;
+        }
+
+        .circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+
+        /* Colors mapping for sidebar */
+        .color-motion { background-color: #4C97FF; }
+        .color-looks { background-color: #9966FF; }
+        .color-sound { background-color: #CF63CF; }
+        .color-events { background-color: #FFBF00; }
+        .color-control { background-color: #FFAB19; }
+        .color-sensing { background-color: #5CB1D6; }
+        .color-operators { background-color: #59C059; }
+        .color-variables { background-color: #FF8C1A; }
+
+        /* Main Workspace */
+        .workspace {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+
+        .block-section {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px; /* Spacing between blocks */
+        }
+        .block-section.active {
+            display: flex;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            width: 100%;
+        }
+
+        /* --- Scratch Blocks Styling --- */
+        .scratch-block {
+            background-color: var(--block-color);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: grab;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+            min-height: 36px;
+        }
+
+        /* Standard Command Blocks (with puzzle notches) */
+        .scratch-block.command {
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        .scratch-block.command::before { /* Top Notch */
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 15px; /* RTL layout */
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 4px 4px 0 0;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            border-left: 1px solid rgba(0,0,0,0.1);
+        }
+        .scratch-block.command::after { /* Bottom Bump */
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            border-left: 1px solid rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+
+        /* Hat Blocks (Events) */
+        .scratch-block.hat {
+            border-radius: 12px 12px 4px 4px;
+            padding: 12px 12px 8px 12px;
+        }
+        .scratch-block.hat::after { /* Bottom Bump */
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+        }
+
+        /* Reporter Blocks (Operators/Variables) */
+        .scratch-block.reporter {
+            border-radius: 20px;
+            padding: 6px 16px;
+        }
+
+        /* Boolean Blocks (Sensing/Conditions) */
+        .scratch-block.boolean {
+            clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0% 50%);
+            padding: 6px 22px;
+            border-radius: 0;
+            box-shadow: none; /* clip-path hides box shadow */
+            filter: drop-shadow(0px 3px 0px rgba(0,0,0,0.2));
+            border: none;
+        }
+
+        /* C-Blocks (Control Loops) */
+        .scratch-block.c-block {
+            border-radius: 4px;
+            padding: 8px 12px 30px 12px; /* Extra bottom padding for the C shape */
+            min-width: 130px;
+        }
+        .scratch-block.c-block::before { /* Top Notch */
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 4px 4px 0 0;
+        }
+        .scratch-block.c-block::after { /* Absolute Bottom Bump */
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+        }
+        /* Inner cut-out of the C-Block */
+        .c-block-mouth {
+            position: absolute;
+            bottom: 8px;
+            right: 20px; /* Thickness of the C-block left wall */
+            left: -1px;
+            height: 22px;
+            background-color: #f9f9f9; /* Match workspace background */
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            box-shadow: inset 0px 2px 3px rgba(0,0,0,0.1);
+        }
+        .c-block-mouth::before { /* Notch inside the mouth to snap blocks */
+            content: '';
+            position: absolute;
+            top: 0px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+        }
+
+        /* --- Variables and Input Fields --- */
+        .input-text {
+            background-color: #ffffff;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 12px;
+            min-width: 15px;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+            font-weight: normal;
+            text-shadow: none;
+            display: inline-block;
+        }
+
+        .input-dropdown {
+            background-color: rgba(0,0,0,0.15); /* Darker shade of block color */
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: normal;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .boolean-gap {
+            background-color: rgba(0,0,0,0.15);
+            width: 30px;
+            height: 15px;
+            clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%);
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar with categories -->
+    <div class="sidebar">
+        <button class="category-btn active" onclick="showCategory('motion', this)">
+            <div class="circle color-motion"></div>
+            الحركة
+        </button>
+        <button class="category-btn" onclick="showCategory('looks', this)">
+            <div class="circle color-looks"></div>
+            الهيئة
+        </button>
+        <button class="category-btn" onclick="showCategory('sound', this)">
+            <div class="circle color-sound"></div>
+            الصوت
+        </button>
+        <button class="category-btn" onclick="showCategory('events', this)">
+            <div class="circle color-events"></div>
+            الأحداث
+        </button>
+        <button class="category-btn" onclick="showCategory('control', this)">
+            <div class="circle color-control"></div>
+            التحكم
+        </button>
+        <button class="category-btn" onclick="showCategory('sensing', this)">
+            <div class="circle color-sensing"></div>
+            الاستشعار
+        </button>
+        <button class="category-btn" onclick="showCategory('operators', this)">
+            <div class="circle color-operators"></div>
+            العمليات
+        </button>
+        <button class="category-btn" onclick="showCategory('variables', this)">
+            <div class="circle color-variables"></div>
+            المتغيرات
+        </button>
+    </div>
+
+    <!-- Main Workspace displaying blocks -->
+    <div class="workspace">
+        
+        <!-- الحركة (Motion) -->
+        <div id="motion" class="block-section active">
+            <h2 class="section-title">الحركة</h2>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">
+                تحرك <span class="input-text">10</span> خطوة
+            </div>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">
+                استدر ↻ <span class="input-text">15</span> درجة
+            </div>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">
+                استدر ↺ <span class="input-text">15</span> درجة
+            </div>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">
+                ارتد إذا كنت عند الحافة
+            </div>
+        </div>
+
+        <!-- الهيئة (Looks) -->
+        <div id="looks" class="block-section">
+            <h2 class="section-title">الهيئة</h2>
+            <div class="scratch-block command" style="--block-color: #9966FF;">
+                قل <span class="input-text">السلام عليكم!</span>
+            </div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">
+                غير الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span>
+            </div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">
+                الخلفية التالية
+            </div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">
+                اظهر
+            </div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">
+                اختف
+            </div>
+        </div>
+
+        <!-- الصوت (Sound) -->
+        <div id="sound" class="block-section">
+            <h2 class="section-title">الصوت</h2>
+            <div class="scratch-block command" style="--block-color: #CF63CF;">
+                شغل الصوت <span class="input-dropdown">Pop ▾</span> وانتظر انتهاءه
+            </div>
+        </div>
+
+        <!-- الأحداث (Events) -->
+        <div id="events" class="block-section">
+            <h2 class="section-title">الأحداث</h2>
+            <div class="scratch-block hat" style="--block-color: #FFBF00;">
+                عند نقر ⚑
+            </div>
+            <div class="scratch-block hat" style="--block-color: #FFBF00;">
+                عند نقر هذا الكائن
+            </div>
+            <div class="scratch-block hat" style="--block-color: #FFBF00;">
+                عندما تتبدل الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span>
+            </div>
+        </div>
+
+        <!-- التحكم (Control) -->
+        <div id="control" class="block-section">
+            <h2 class="section-title">التحكم</h2>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">
+                كرر <span class="input-text">10</span> مرة
+                <div class="c-block-mouth"></div>
+            </div>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">
+                كرر باستمرار
+                <div class="c-block-mouth"></div>
+            </div>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">
+                إذا <span class="boolean-gap"></span>
+                <div class="c-block-mouth"></div>
+            </div>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">
+                كرر حتى <span class="boolean-gap"></span>
+                <div class="c-block-mouth"></div>
+            </div>
+        </div>
+
+        <!-- الاستشعار (Sensing) -->
+        <div id="sensing" class="block-section">
+            <h2 class="section-title">الاستشعار</h2>
+            <div class="scratch-block boolean" style="--block-color: #5CB1D6;">
+                ملامس لـ <span class="input-dropdown">Gobo ▾</span> ؟
+            </div>
+        </div>
+
+        <!-- العمليات (Operators) -->
+        <div id="operators" class="block-section">
+            <h2 class="section-title">العمليات</h2>
+            <div class="scratch-block reporter" style="--block-color: #59C059;">
+                <span class="input-text">50</span> = <span class="input-text">&nbsp;&nbsp;&nbsp;</span>
+            </div>
+        </div>
+
+        <!-- المتغيرات (Variables) -->
+        <div id="variables" class="block-section">
+            <h2 class="section-title">المتغيرات</h2>
+            <div class="scratch-block command" style="--block-color: #FF8C1A;">
+                اجعل <span class="input-dropdown">متغير ▾</span> مساويا <span class="input-text">0</span>
+            </div>
+            <div class="scratch-block command" style="--block-color: #FF8C1A;">
+                غير <span class="input-dropdown">متغير ▾</span> بمقدار <span class="input-text">1</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showCategory(categoryId, buttonElement) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.block-section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected section
+            document.getElementById(categoryId).classList.add('active');
+            
+            // Highlight selected button
+            buttonElement.classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
