@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بطاقات المبرمج الصغير 🚀</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #ff9800;
+            text-shadow: 2px 2px #ffe0b2;
+            font-size: 32px;
+        }
+
+        .card-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: 4px solid #4CAF50;
+            position: relative;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .progress {
+            font-weight: bold;
+            color: #888;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .question {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background-color: #e3f2fd;
+            border: 2px solid #2196F3;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 18px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            color: #1565c0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-btn:hover {
+            background-color: #2196F3;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .correct {
+            background-color: #4CAF50 !important;
+            border-color: #388E3C !important;
+            color: white !important;
+        }
+
+        .wrong {
+            background-color: #F44336 !important;
+            border-color: #D32F2F !important;
+            color: white !important;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-weight: 900;
+            margin: 20px auto;
+            border: 5px solid #c8e6c9;
+        }
+
+        .restart-btn {
+            background-color: #ff9800;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .restart-btn:hover {
+            background-color: #f57c00;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚀 بطاقات المبرمج الذكي 🚀</h1>
+
+    <!-- صندوق الأسئلة (البطاقة) -->
+    <div class="card-container" id="card-area">
+        <div class="progress" id="progress-text">بطاقة 1 من 10</div>
+        <div class="question" id="question-text">جاري تحميل السؤال...</div>
+        <div class="options-grid" id="options-area">
+            <!-- الخيارات تظهر هنا برمجياً -->
+        </div>
+    </div>
+
+    <!-- صندوق النتيجة النهائية -->
+    <div class="card-container results" id="results-area">
+        <h2>🎉 انتهت اللعبة! 🎉</h2>
+        <div class="score-circle" id="score-display">0/10</div>
+        <h3 id="feedback-message">رسالة تشجيعية</h3>
+        <button class="restart-btn" onclick="restartGame()">🔄 العب مرة أخرى</button>
+    </div>
+</div>
+
+<script>
+    // مصفوفة الأسئلة
+    const questions = [
+        {
+            q: "🐱 أريد أن يمشي القط ولا يتوقف أبداً! أي أمر أختار؟",
+            options: ["كرر 10 مرات", "كرر باستمرار", "إذا ... إذن", "كرر حتى"],
+            correct: 1
+        },
+        {
+            q: "🏃‍♂️ أمر 'تحرك 10 خطوات' يجعل الكائن يتحرك من مكانه. في أي قسم من الألوان نجده؟",
+            options: ["قسم الهيئة (بنفسجي)", "قسم الأحداث (أصفر)", "قسم الحركة (أزرق)", "قسم الصوت (وردي)"],
+            correct: 2
+        },
+        {
+            q: "🐰 أريد أن يقفز الأرنب 5 مرات فقط ثم يتوقف. أي أمر هو المناسب؟",
+            options: ["كرر 5 مرات", "كرر باستمرار", "إذا ... إذن", "كرر حتى"],
+            correct: 0
+        },
+        {
+            q: "👻 أريد أن يختفي الشبح فقط (إذا) لمسه البطل. أي أمر أستخدم لاختبار هذا الشرط؟",
+            options: ["كرر باستمرار", "إذا ... إذن", "كرر حتى", "استدر 15 درجة"],
+            correct: 1
+        },
+        {
+            q: "🔄 أمر 'استدر 15 درجة' يجعل الكائن يدور في مكانه. أين يسكن هذا الأمر؟",
+            options: ["تحت خانة الحركة", "تحت خانة التحكم", "تحت خانة الاستشعار", "تحت خانة الهيئة"],
+            correct: 0
+        },
+        {
+            q: "🚗 أريد أن تستمر السيارة في المشي، وتتوقف فقط (عندما تلمس الجدار). أي أمر أختار؟",
+            options: ["كرر 10 مرات", "كرر باستمرار", "كرر حتى (تلمس الجدار)", "إذا ... إذن"],
+            correct: 2
+        },
+        {
+            q: "💬 أمر 'قل مرحباً لمدة ثانيتين' يجعل الكائن يُظهر فقاعة كلام. في أي قسم نجده؟",
+            options: ["خانة الحركة", "خانة الهيئة", "خانة التحكم", "خانة الأحداث"],
+            correct: 1
+        },
+        {
+            q: "🔢 إذا وضعت أمر 'كرر 3 مرات'، ماذا سيحدث بعد أن ينفذ الكائن الأمر للمرة الثالثة؟",
+            options: ["سيكرر الأمر مرة رابعة", "سيتوقف عن التكرار ويكمل اللعبة", "سيستمر في التكرار للأبد", "سيختفي الكائن تماماً"],
+            correct: 1
+        },
+        {
+            q: "🎵 أمر 'شغل الصوت (مواء)' يجعلك تسمع صوتاً. أين يسكن هذا الأمر؟",
+            options: ["خانة الحركة", "خانة التحكم", "خانة الصوت", "خانة الأحداث"],
+            correct: 2
+        },
+        {
+            q: "🎯 أريد أن أسأل نفسي سؤالاً واحداً أثناء اللعبة: (هل لمست اللون الأحمر؟). أي أمر يساعدني في هذا السؤال؟",
+            options: ["إذا ... إذن", "كرر باستمرار", "تحرك 10 خطوات", "كرر 10 مرات"],
+            correct: 0
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const cardArea = document.getElementById('card-area');
+    const resultsArea = document.getElementById('results-area');
+    const questionText = document.getElementById('question-text');
+    const optionsArea = document.getElementById('options-area');
+    const progressText = document.getElementById('progress-text');
+    const scoreDisplay = document.getElementById('score-display');
+    const feedbackMessage = document.getElementById('feedback-message');
+
+    // وظيفة تحميل السؤال الحالي
+    function loadQuestion() {
+        const currentQ = questions[currentQuestionIndex];
+        
+        // تحديث النص والتقدم
+        progressText.innerText = `بطاقة ${currentQuestionIndex + 1} من ${questions.length}`;
+        questionText.innerText = currentQ.q;
+        
+        // مسح الخيارات القديمة
+        optionsArea.innerHTML = '';
+
+        // إنشاء أزرار الخيارات الجديدة
+        currentQ.options.forEach((option, index) => {
+            const button = document.createElement('button');
+            button.innerText = option;
+            button.classList.add('option-btn');
+            button.onclick = () => checkAnswer(index, button);
+            optionsArea.appendChild(button);
+        });
+    }
+
+    // وظيفة التحقق من الإجابة
+    function checkAnswer(selectedIndex, selectedButton) {
+        const currentQ = questions[currentQuestionIndex];
+        const allButtons = optionsArea.querySelectorAll('.option-btn');
+        
+        // إيقاف الضغط على الأزرار بعد الاختيار
+        allButtons.forEach(btn => btn.disabled = true);
+
+        // التحقق إذا كانت الإجابة صحيحة
+        if (selectedIndex === currentQ.correct) {
+            selectedButton.classList.add('correct');
+            score++;
+        } else {
+            selectedButton.classList.add('wrong');
+            // تلوين الإجابة الصحيحة باللون الأخضر
+            allButtons[currentQ.correct].classList.add('correct');
+        }
+
+        // الانتظار ثانية ونصف ثم الانتقال للسؤال التالي
+        setTimeout(() => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }, 1500);
+    }
+
+    // وظيفة إظهار النتائج
+    function showResults() {
+        cardArea.style.display = 'none';
+        resultsArea.style.display = 'flex';
+        scoreDisplay.innerText = `${score} / 10`;
+
+        // رسالة تشجيعية بناءً على النتيجة
+        if (score === 10) {
+            feedbackMessage.innerText = "🌟 مذهل! أنت مبرمج عبقري ومحترف في سكراتش!";
+        } else if (score >= 7) {
+            feedbackMessage.innerText = "👍 ممتاز! لديك مهارات رائعة في البرمجة.";
+        } else if (score >= 4) {
+            feedbackMessage.innerText = "🙂 جيد جداً! مع القليل من التدريب ستصبح بطلاً.";
+        } else {
+            feedbackMessage.innerText = "💪 لا تستسلم! حاول مرة أخرى لتتعلم أكثر.";
+        }
+    }
+
+    // وظيفة إعادة اللعبة
+    function restartGame() {
+        currentQuestionIndex = 0;
+        score = 0;
+        resultsArea.style.display = 'none';
+        cardArea.style.display = 'flex';
+        loadQuestion();
+    }
+
+    // تشغيل اللعبة عند فتح الصفحة
+    loadQuestion();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🐱 صائد نجوم سكراتش - أركيد حقيقي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;font-family:'Cairo',sans-serif;-webkit-tap-highlight-color:transparent}
+  body{background:#050514;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:10px;
+    background-image: radial-gradient(white 1px, transparent 1px); background-size:30px 30px;}
+  #cab{width:100%;max-width:480px;background:#11112b;border:4px solid #00ffcc;border-radius:18px;overflow:hidden;
+    box-shadow:0 0 25px #00ffcc,0 0 60px #ff00de;}
+  #hud{display:flex;justify-content:space-between;align-items:center;background:#000;padding:8px 12px;font-weight:900;font-size:17px;border-bottom:3px solid #00ffcc}
+  #hud span{display:inline-block}
+  #wrap{position:relative}
+  canvas{display:block;width:100%;height:520px;background:linear-gradient(180deg,#0f0c29,#302b63 60%,#1a1a3a);touch-action:none}
+  .overlay{position:absolute;inset:0;background:rgba(5,0,30,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:22px;z-index:10}
+  .hidden{display:none !important}
+  h1{font-size:30px;color:#ffde59;text-shadow:3px 3px 0 #ff00de;margin:8px 0;line-height:1.4}
+  p{font-size:18px;line-height:1.9}
+  .big{font-size:70px;animation:bounce 1s infinite alternate;display:inline-block}
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+  .btn{background:linear-gradient(180deg,#00ffcc,#00aa88);border:none;border-bottom:6px solid #007766;color:#00261f;
+    font-size:21px;font-weight:900;padding:13px 20px;border-radius:14px;cursor:pointer;margin-top:14px;width:100%;max-width:320px}
+  .btn:active{transform:translateY(4px);border-bottom-width:2px}
+  .btn-pink{background:linear-gradient(180deg,#ff7ad9,#ff00de);border-bottom-color:#990087;color:#fff;text-shadow:1px 1px 0 #000}
+  #quiz{background:#fff;color:#222;border-radius:16px;padding:16px;width:92%;max-width:400px;border:4px solid #ffde59;max-height:90%;overflow-y:auto}
+  #quiz h2{color:#6a00ff;font-size:20px;margin-bottom:8px}
+  #q-text{font-size:19px;font-weight:700;margin-bottom:12px;line-height:1.7}
+  #q-feedback{font-size:17px;font-weight:900;margin-top:10px;line-height:1.7;border-radius:10px;padding:8px;display:none}
+  #q-feedback.show{display:block}
+  #q-feedback.ok{background:#e6ffe6;color:#006600}
+  #q-feedback.no{background:#ffe6e6;color:#990000}
+  .opt{display:block;width:100%;margin:8px 0;padding:11px;border-radius:12px;border:3px solid #6a00ff;background:#efe8ff;
+    font-size:17px;font-weight:700;cursor:pointer}
+  .opt:active{transform:scale(.97)}
+  #ctrl{display:flex;gap:12px;padding:10px;background:#000}
+  #ctrl button{flex:1;font-size:30px;padding:10px;border-radius:14px;border:3px solid #00ffcc;background:#1a1a3a;color:#fff;cursor:pointer}
+  #ctrl button:active{background:#00ffcc}
+  .score-big{font-size:58px;font-weight:900;color:#ffde59;text-shadow:2px 2px 0 #000}
+  #shake{animation:none}
+  .shake{animation:shake .4s !important}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+</style>
+</head>
+<body>
+<div id="cab">
+  <div id="hud">
+    <span>⭐ <span id="s">0</span></span>
+    <span>❤️ <span id="h">3</span></span>
+    <span>⏱️ <span id="t">90</span></span>
+  </div>
+  <div id="wrap">
+    <canvas id="cv" width="480" height="520"></canvas>
+
+    <div id="start" class="overlay">
+      <div class="big">🐱</div>
+      <h1>صائد نجوم سكراتش!</h1>
+      <p>حرك القطة <b>يمين وشمال</b> بالأسهم أو صباعك<br>
+      ⭐ اجمع النجوم لتظهر لك <b>أسئلة التكرار والشرط</b><br>
+      🔁 ♾️ 🛑 🤔 : كرر مرات / باستمرار / حتى / إذا<br>
+      🐞 اهرب من الباجات الحمرا!<br>
+      ❤️ معاك 3 قلوب و 90 ثانية</p>
+      <button class="btn btn-pink" onclick="startGame()">▶️ ابدأ الأركيد</button>
+      <p style="font-size:14px;opacity:.7;margin-top:10px">◀️ ▶️ أو اسحب على الشاشة للحركة</p>
+    </div>
+
+    <div id="quizWrap" class="overlay hidden">
+      <div id="quiz">
+        <h2>🧩 سؤال سكراتش! جاوب بسرعة</h2>
+        <div id="q-text"></div>
+        <div id="q-opts"></div>
+        <div id="q-feedback"></div>
+      </div>
+    </div>
+
+    <div id="end" class="overlay hidden">
+      <div class="big" id="endEmoji">🏆</div>
+      <h1>خلصت اللعبة!</h1>
+      <div class="score-big"><span id="final">0</span></div>
+      <p id="detail" style="font-size:16px"></p>
+      <p id="msg"></p>
+      <button class="btn btn-pink" onclick="startGame()">🔁 العب تاني</button>
+    </div>
+  </div>
+  <div id="ctrl">
+    <button id="bl" ontouchstart="keys.left=true" ontouchend="keys.left=false" onmousedown="keys.left=true" onmouseup="keys.left=false">◀️</button>
+    <button id="br" ontouchstart="keys.right=true" ontouchend="keys.right=false" onmousedown="keys.right=true" onmouseup="keys.right=false">▶️</button>
+  </div>
+</div>
+
+<script src="questions-bank.js"></script>
+<script>
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+// بنك الأسئلة من ملف منفصل: questions-bank.js
+const questions = window.SCRATCH_QUESTIONS || [];
+let player, items, stars, scoreCatch, scoreQuiz, hearts, timeLeft, quizIdx, quizOrder;
+let playing=false, paused=false, lastSpawn=0, gameLoopId=null, timerId=null;
+let keys={left:false,right:false};
+
+function sound(f1,f2,dur=0.25){
+  try{
+    const C=new (window.AudioContext||window.webkitAudioContext)();
+    const o=C.createOscillator(),g=C.createGain();o.connect(g);g.connect(C.destination);
+    o.frequency.setValueAtTime(f1,C.currentTime);o.frequency.setValueAtTime(f2,C.currentTime+0.1);
+    o.start();g.gain.exponentialRampToValueAtTime(0.001,C.currentTime+dur);o.stop(C.currentTime+dur);
+  }catch(e){}
+}
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startGame(){
+  player={x:240,w:60,y:460};
+  items=[];stars=[];for(let i=0;i<70;i++)stars.push({x:Math.random()*480,y:Math.random()*520,s:Math.random()*2+0.5});
+  scoreCatch=0;scoreQuiz=0;hearts=3;timeLeft=90;quizOrder=shuffle([...Array(questions.length).keys()]);quizIdx=0;
+  playing=true;paused=false;
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('end').classList.add('hidden');
+  document.getElementById('quizWrap').classList.add('hidden');
+  updateHUD();
+  clearInterval(timerId);
+  timerId=setInterval(()=>{ if(!playing||paused)return; timeLeft--; document.getElementById('t').textContent=timeLeft; if(timeLeft<=0)gameOver(); },1000);
+  cancelAnimationFrame(gameLoopId);
+  requestAnimationFrame(loop);
+}
+
+function updateHUD(){
+  document.getElementById('s').textContent=scoreCatch+scoreQuiz;
+  document.getElementById('h').textContent='❤️'.repeat(hearts)||'💔';
+  document.getElementById('h').textContent=hearts;
+  document.getElementById('t').textContent=timeLeft;
+}
+
+function spawn(){
+  const isStar=Math.random()<0.6;
+  items.push({x:20+Math.random()*440,y:-30,vy:2+Math.random()*2+(90-timeLeft)*0.02,
+    type:isStar?'star':'bug',e:isStar?'⭐':'🐞'});
+}
+
+function loop(ts){
+  if(!playing)return;
+  if(!paused){
+    // move
+    if(keys.left)player.x-=6;
+    if(keys.right)player.x+=6;
+    // في عربي RTL نعكس؟ لا، خليها طبيعية للعب
+    player.x=Math.max(30,Math.min(450,player.x));
+    // bg stars
+    ctx.clearRect(0,0,480,520);
+    ctx.fillStyle='#fff';
+    stars.forEach(s=>{s.y+=s.s;if(s.y>520){s.y=0;s.x=Math.random()*480;}ctx.fillRect(s.x,s.y,2,2);});
+    // spawn
+    if(!lastSpawn||ts-lastSpawn>650){spawn();lastSpawn=ts;}
+    // draw + move items
+    ctx.font='34px serif';ctx.textAlign='center';
+    for(let i=items.length-1;i>=0;i--){
+      const it=items[i];it.y+=it.vy;
+      ctx.fillText(it.e,it.x,it.y);
+      // collision with player
+      if(it.y>430&&it.y<490&&Math.abs(it.x-player.x)<40){
+        items.splice(i,1);
+        if(it.type==='star'){sound(523,784);scoreCatch+=5;updateHUD();openQuiz();}
+        else{sound(300,100);hearts--;updateHUD();shake();if(hearts<=0){gameOver();return;}}
+        continue;
+      }
+      if(it.y>540)items.splice(i,1);
+    }
+    // player
+    ctx.font='52px serif';
+    ctx.fillText('🐱',player.x,480);
+    // platform
+    ctx.fillStyle='#00ffcc';ctx.fillRect(player.x-35,490,70,6);
+  }
+  gameLoopId=requestAnimationFrame(loop);
+}
+
+function shake(){
+  cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');
+}
+
+function openQuiz(){
+  if(!questions.length){ paused=false; return; }
+  if(quizIdx>=quizOrder.length){ quizOrder=shuffle([...Array(questions.length).keys()]); quizIdx=0; }
+  paused=true;
+  const qi=quizOrder[quizIdx++];
+  const Q=questions[qi];
+  document.getElementById('q-text').textContent=Q.q;
+  const fb=document.getElementById('q-feedback'); fb.className=''; fb.textContent='';
+  const box=document.getElementById('q-opts');box.innerHTML='';
+  Q.a.forEach((txt,i)=>{
+    const b=document.createElement('button');b.className='opt';b.textContent=txt;
+    b.onclick=()=>closeQuiz(i===Q.c, Q.e || '');
+    box.appendChild(b);
+  });
+  document.getElementById('quizWrap').classList.remove('hidden');
+}
+
+function closeQuiz(ok, explain){
+  const fb=document.getElementById('q-feedback');
+  document.querySelectorAll('#q-opts .opt').forEach(b=>b.style.pointerEvents='none');
+  if(ok){
+    scoreQuiz+=20; sound(659,880,0.4);
+    fb.textContent='🎉 صح! ' + explain; fb.className='show ok';
+  } else {
+    hearts--; sound(200,80); shake();
+    fb.textContent='😅 مش دي! ' + explain; fb.className='show no';
+  }
+  updateHUD();
+  setTimeout(()=>{
+    document.getElementById('quizWrap').classList.add('hidden');
+    if(hearts<=0){ gameOver(); return; }
+    paused=false;
+  },2200);
+}
+
+function gameOver(){
+  playing=false;paused=false;clearInterval(timerId);
+  const total=scoreCatch+scoreQuiz;
+  document.getElementById('quizWrap').classList.add('hidden');
+  document.getElementById('end').classList.remove('hidden');
+  document.getElementById('final').textContent=total;
+  document.getElementById('detail').textContent=`⭐ نقاط الصيد: ${scoreCatch} + 🧩 نقاط الأسئلة: ${scoreQuiz}`;
+  let m,e;
+  if(total>=150){m='أسطوري! أنت بطل سكراتش الحقيقي! 👑';e='👑';}
+  else if(total>=100){m='رائع جداً يا مبرمج صغير! 💪';e='🏆';}
+  else if(total>=50){m='أحسنت! استمر واجمع أكتر! 😊';e='🐱';}
+  else{m='بداية جميلة! حاول تاني وهتبقى أحسن! ❤️';e='💪';}
+  document.getElementById('msg').textContent=m;
+  document.getElementById('endEmoji').textContent=e;
+  sound(400,100,0.6);
+}
+
+// keyboard - معكوس عشان RTL؟ نخليها طبيعية
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft')keys.left=true;
+  if(e.key==='ArrowRight')keys.right=true;
+});
+window.addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft')keys.left=false;
+  if(e.key==='ArrowRight')keys.right=false;
+});
+// touch drag
+let dragging=false;
+cv.addEventListener('pointerdown',()=>dragging=true);
+window.addEventListener('pointerup',()=>dragging=false);
+cv.addEventListener('pointermove',e=>{
+  if(!dragging||!playing||paused)return;
+  const r=cv.getBoundingClientRect();
+  const x=(e.clientX-r.left)/r.width*480;
+  player.x=Math.max(30,Math.min(450,x));
+});
+</script>
+</body>
+</html>
