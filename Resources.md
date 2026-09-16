@@ -1,5 +1,8 @@
 # Tried 
 
+[Py2SB3](https://github.com/Samuelicjones/Py2SB3) -- Python to scratch -- it works perfectly but the docs are outdated. Claude helped a lot. 
+
+
 ## Courses 
 
 > [Course: 5 Projects In 5 Days - Scratch Game Programming For Kids | Udemy](https://www.udemy.com/course/5-projects-in-5-days-scratch-game-programming-for-kids/learn/lecture/34286754#overview) 

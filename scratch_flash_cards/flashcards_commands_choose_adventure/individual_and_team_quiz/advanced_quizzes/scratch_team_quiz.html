@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي الفرق - سكراتش 🔵 vs 🔴</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --blue-team: #2563eb;
+            --blue-light: #dbeafe;
+            --blue-dark: #1d4ed8;
+            --red-team: #dc2626;
+            --red-light: #fee2e2;
+            --red-dark: #b91c1c;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --scratch-orange: #ffab19;
+            --scratch-blue: #4c97ff;
+            --scratch-purple: #9966ff;
+            --scratch-green: #59c059;
+            --correct-color: #16a34a;
+            --wrong-color: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 50%, #ffe4e6 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 28px;
+            margin-top: 10px;
+            border: 3px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Scoreboard */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .team-card {
+            flex: 1;
+            padding: 16px 20px;
+            border-radius: 18px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            border: 3px solid transparent;
+            background: #f8fafc;
+        }
+
+        .team-card.blue {
+            background-color: var(--blue-light);
+            color: var(--blue-dark);
+            border-color: #bfdbfe;
+        }
+
+        .team-card.blue.active {
+            border-color: var(--blue-team);
+            transform: scale(1.04);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+            background: #ffffff;
+        }
+
+        .team-card.red {
+            background-color: var(--red-light);
+            color: var(--red-dark);
+            border-color: #fca5a5;
+        }
+
+        .team-card.red.active {
+            border-color: var(--red-team);
+            transform: scale(1.04);
+            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.25);
+            background: #ffffff;
+        }
+
+        .team-name {
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .team-score {
+            font-size: 36px;
+            font-weight: 900;
+            margin-top: 4px;
+        }
+
+        .turn-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .team-card.active .turn-badge {
+            opacity: 1;
+        }
+
+        .team-card.blue.active .turn-badge {
+            background: var(--blue-team);
+            color: white;
+        }
+
+        .team-card.red.active .turn-badge {
+            background: var(--red-team);
+            color: white;
+        }
+
+        /* Question Banner */
+        .turn-banner {
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .turn-banner.blue-turn {
+            background: var(--blue-team);
+            color: white;
+        }
+
+        .turn-banner.red-turn {
+            background: var(--red-team);
+            color: white;
+        }
+
+        /* Question Box */
+        .question-card {
+            background: #f1f5f9;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 20px;
+            border-right: 6px solid var(--scratch-orange);
+        }
+
+        .question-num {
+            font-size: 14px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.5;
+        }
+
+        .scratch-code-block {
+            display: inline-block;
+            background: var(--scratch-orange);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            margin: 4px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            direction: rtl;
+        }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2.5px solid #cbd5e1;
+            padding: 16px 20px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #334155;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #94a3b8;
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .option-btn.correct {
+            background: #dcfce7 !important;
+            border-color: var(--correct-color) !important;
+            color: #14532d !important;
+        }
+
+        .option-btn.wrong {
+            background: #fee2e2 !important;
+            border-color: var(--wrong-color) !important;
+            color: #7f1d1d !important;
+        }
+
+        .option-prefix {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Controls / Footer */
+        .footer-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .next-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+        }
+
+        .next-btn:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+        }
+
+        /* Feedback box */
+        .feedback-box {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            display: none;
+        }
+
+        .feedback-box.correct {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .feedback-box.wrong {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* Final Result View */
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+        }
+
+        .winner-title {
+            font-size: 32px;
+            font-weight: 900;
+            margin-bottom: 16px;
+        }
+
+        .result-scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin: 30px 0;
+        }
+
+        .result-card {
+            padding: 24px 36px;
+            border-radius: 20px;
+            color: white;
+            min-width: 180px;
+        }
+
+        .result-card.blue {
+            background: var(--blue-team);
+        }
+
+        .result-card.red {
+            background: var(--red-team);
+        }
+
+        .restart-btn {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .top-nav {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #475569;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-link:hover {
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-nav">
+            <a href="index.html" class="nav-link">➔ العودة للقائمة الرئيسية</a>
+            <span style="font-weight:700; font-size:14px; color:#64748b;">تحدي الفرق (10 أسئلة)</span>
+        </div>
+
+        <!-- Header -->
+        <header>
+            <h1>مسابقة سكراتش التنافسية 🚀</h1>
+            <p class="subtitle">5 أسئلة للفريق الأزرق و5 أسئلة للفريق الأحمر (بالتناوب)</p>
+        </header>
+
+        <div id="quiz-screen">
+            <!-- Scoreboard -->
+            <div class="scoreboard">
+                <div class="team-card blue active" id="blue-card">
+                    <div class="team-name">🔵 الفريق الأزرق</div>
+                    <div class="team-score" id="blue-score">0</div>
+                    <div class="turn-badge">دوركم الآن!</div>
+                </div>
+
+                <div class="team-card red" id="red-card">
+                    <div class="team-name">🔴 الفريق الأحمر</div>
+                    <div class="team-score" id="red-score">0</div>
+                    <div class="turn-badge">دوركم الآن!</div>
+                </div>
+            </div>
+
+            <!-- Current Turn Banner -->
+            <div class="turn-banner blue-turn" id="turn-banner">
+                دور الفريق الأزرق 🔵 — السؤال (1 / 10)
+            </div>
+
+            <!-- Question Card -->
+            <div class="question-card">
+                <div class="question-num" id="q-num-text">السؤال الأول (للفريق الأزرق)</div>
+                <div class="question-text" id="q-text">جاري تحميل السؤال...</div>
+            </div>
+
+            <!-- Options -->
+            <div class="options-grid" id="options-container">
+                <!-- Options injected by JS -->
+            </div>
+
+            <!-- Footer Controls -->
+            <div class="footer-controls">
+                <div class="feedback-box" id="feedback"></div>
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">السؤال التالي ➔</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen" id="result-screen">
+            <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+            <div class="winner-title" id="winner-title">الفائز هو...</div>
+            <p id="winner-desc" style="font-size: 18px; color: #475569; font-weight: 700;"></p>
+
+            <div class="result-scoreboard">
+                <div class="result-card blue">
+                    <h3>🔵 الفريق الأزرق</h3>
+                    <div style="font-size: 42px; font-weight: 900; margin-top: 8px;" id="final-blue-score">0</div>
+                    <p style="margin-top: 4px; opacity: 0.9;">من 5 نقاط</p>
+                </div>
+                <div class="result-card red">
+                    <h3>🔴 الفريق الأحمر</h3>
+                    <div style="font-size: 42px; font-weight: 900; margin-top: 8px;" id="final-red-score">0</div>
+                    <p style="margin-top: 4px; opacity: 0.9;">من 5 نقاط</p>
+                </div>
+            </div>
+
+            <button class="restart-btn" onclick="restartQuiz()">إعادة المسابقة 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // Audio Synth for feedback
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(isCorrect) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.3); // G5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                osc.frequency.exponentialRampToValueAtTime(130.81, audioCtx.currentTime + 0.3); // C3
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            }
+        }
+
+        // 10 Questions total: Alternating Blue (0,2,4,6,8) and Red (1,3,5,7,9)
+        const questions = [
+            {
+                team: "blue",
+                teamName: "الفريق الأزرق 🔵",
+                numLabel: "السؤال 1 (للفريق الأزرق)",
+                question: "ماذا تفعل اللبنة <span class='scratch-code-block' style='background:#ffab19;'>عند نقر 🚩</span> في سكراتش؟",
+                options: [
+                    "تبدأ تشغيل المقاطع البرمجية عند الضغط على العلم الأخضر.",
+                    "تقوم بإيقاف كافة الأصوات في مشروع سكراتش.",
+                    "تغير لون الكائن إلى اللون الأخضر فوراً.",
+                    "تحذف الكائن الحالي من منصة العرض."
+                ],
+                correct: 0
+            },
+            {
+                team: "red",
+                teamName: "الفريق الأحمر 🔴",
+                numLabel: "السؤال 2 (للفريق الأحمر)",
+                question: "ما فائدة استخدام اللبنة <span class='scratch-code-block' style='background:#4c97ff;'>تحرك (10) خطوة</span>؟",
+                options: [
+                    "تغيير اتجاه زاوية الكائن بـ 10 درجات.",
+                    "تحريك الكائن للأمام بمقدار 10 خطوات في اتجاهه الحالي.",
+                    "تكبير حجم الكائن بنسبة 10%.",
+                    "الانتظار لمدة 10 ثوانٍ قبل الأمر التالي."
+                ],
+                correct: 1
+            },
+            {
+                team: "blue",
+                teamName: "الفريق الأزرق 🔵",
+                numLabel: "السؤال 3 (للفريق الأزرق)",
+                question: "إذا أردنا جعل الأوامر تتكرر بدون توقف إطلاقاً، نستخدم اللبنة:",
+                options: [
+                    "كرر (10) مرة",
+                    "إذا ... فإن",
+                    "كرر باستمرار (Forever)",
+                    "انتظر (1) ثانية"
+                ],
+                correct: 2
+            },
+            {
+                team: "red",
+                teamName: "الفريق الأحمر 🔴",
+                numLabel: "السؤال 4 (للفريق الأحمر)",
+                question: "اللبنة <span class='scratch-code-block' style='background:#5cb1d6;'>إذا ملامس لـ [مؤشر الفأرة]</span> تنتمي إلى أي قسم؟",
+                options: [
+                    "قسم الحركة (Motion)",
+                    "قسم التحسس / الاستشعار (Sensing)",
+                    "قسم الصوت (Sound)",
+                    "قسم المتغيرات (Variables)"
+                ],
+                correct: 1
+            },
+            {
+                team: "blue",
+                teamName: "الفريق الأزرق 🔵",
+                numLabel: "السؤال 5 (للفريق الأزرق)",
+                question: "ما وظيفة اللبنة <span class='scratch-code-block' style='background:#ffab19;'>ارسل رسالة [message1]</span>؟",
+                options: [
+                    "إيقاف تشغيل اللعبة نهائياً.",
+                    "إرسال إشارة تنبيه لتشغيل لبنات تبدأ بـ (عندما أستقبل).",
+                    "تغيير اسم الكائن الظاهر على الشاشة.",
+                    "طباعة النص على الشاشة داخل فقاعة."
+                ],
+                correct: 1
+            },
+            {
+                team: "red",
+                teamName: "الفريق الأحمر 🔴",
+                numLabel: "السؤال 6 (للفريق الأحمر)",
+                question: "إذا كانت قيمة المتغير (س = 5) وقمنا بتنفيذ اللبنة <span class='scratch-code-block' style='background:#ff6680;'>غير [س] بمقدار (2)</span>، فكم تصبح قيمته؟",
+                options: [
+                    "5",
+                    "2",
+                    "7",
+                    "10"
+                ],
+                correct: 2
+            },
+            {
+                team: "blue",
+                teamName: "الفريق الأزرق 🔵",
+                numLabel: "السؤال 7 (للفريق الأزرق)",
+                question: "أي اللبنات التالية تُستخدم لجعل الكائن يتحدث بفقاعة كلام تختفي بعد زمن معين؟",
+                options: [
+                    "قل [مرحباً!] لمدة [2] ثانية",
+                    "فكر [مرحباً!]",
+                    "عزف الصوت حتى انتهاء التجميع",
+                    "اذهب إلى موضع عشوائي"
+                ],
+                correct: 0
+            },
+            {
+                team: "red",
+                teamName: "الفريق الأحمر 🔴",
+                numLabel: "السؤال 8 (للفريق الأحمر)",
+                question: "ما وظيفة اللبنة <span class='scratch-code-block' style='background:#4c97ff;'>ارتد إذا كنت عند الحافة</span>؟",
+                options: [
+                    "تصغير حجم الكائن عندما يلمس الحافة.",
+                    "إخفاء الكائن فور وصوله إلى حافة المنصة.",
+                    "عكس اتجاه حركة الكائن ليعود للخلف عند ملامسة الحافة.",
+                    "إغلاق البرنامج وإعادة التشغيل."
+                ],
+                correct: 2
+            },
+            {
+                team: "blue",
+                teamName: "الفريق الأزرق 🔵",
+                numLabel: "السؤال 9 (للفريق الأزرق)",
+                question: "أنسب لبنة لإنشاء نسخة مطابقة (Clone) من الكائن أثناء تشغيل اللعبة هي:",
+                options: [
+                    "أنشئ نسخة من [نفسي]",
+                    "إخفاء",
+                    "امسح الكل",
+                    "غير المظهر إلى المظهر التالي"
+                ],
+                correct: 0
+            },
+            {
+                team: "red",
+                teamName: "الفريق الأحمر 🔴",
+                numLabel: "السؤال 10 (للفريق الأحمر)",
+                question: "للتحقق من شرط معين (مثل: هل الكائن يلمس الهدف؟)، نستخدم اللبنة الشرطية:",
+                options: [
+                    "كرر باستمرار",
+                    "إذا <ملموس؟> فإن",
+                    "اذهب إلى [س: 0 ص: 0]",
+                    "اجعل الحجم مساوياً 100%"
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentIndex = 0;
+        let blueScore = 0;
+        let redScore = 0;
+
+        function loadQuestion() {
+            const q = questions[currentIndex];
+            
+            // Update UI elements
+            document.getElementById('q-num-text').innerText = q.numLabel;
+            document.getElementById('q-text').innerHTML = q.question;
+            
+            const turnBanner = document.getElementById('turn-banner');
+            const blueCard = document.getElementById('blue-card');
+            const redCard = document.getElementById('red-card');
+
+            if (q.team === "blue") {
+                turnBanner.className = "turn-banner blue-turn";
+                turnBanner.innerText = `دور الفريق الأزرق 🔵 — السؤال (${currentIndex + 1} / 10)`;
+                blueCard.classList.add('active');
+                redCard.classList.remove('active');
+            } else {
+                turnBanner.className = "turn-banner red-turn";
+                turnBanner.innerText = `دور الفريق الأحمر 🔴 — السؤال (${currentIndex + 1} / 10)`;
+                redCard.classList.add('active');
+                blueCard.classList.remove('active');
+            }
+
+            // Hide next button & feedback
+            document.getElementById('next-btn').style.display = 'none';
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = 'none';
+
+            // Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const prefixes = ['أ', 'ب', 'جـ', 'د'];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        <span class="option-prefix">${prefixes[idx]}</span>
+                        <span>${opt}</span>
+                    </div>
+                `;
+                btn.onclick = () => checkAnswer(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIdx) {
+            const q = questions[currentIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback');
+
+            // Disable all buttons
+            buttons.forEach(btn => btn.disabled = true);
+
+            const isCorrect = (selectedIdx === q.correct);
+            playSound(isCorrect);
+
+            if (isCorrect) {
+                buttons[selectedIdx].classList.add('correct');
+                feedback.className = 'feedback-box correct';
+                feedback.innerText = 'إجابة صحيحة! 🎉 +1 نقطة';
+                
+                if (q.team === "blue") {
+                    blueScore++;
+                    document.getElementById('blue-score').innerText = blueScore;
+                } else {
+                    redScore++;
+                    document.getElementById('red-score').innerText = redScore;
+                }
+            } else {
+                buttons[selectedIdx].classList.add('wrong');
+                buttons[q.correct].classList.add('correct');
+                feedback.className = 'feedback-box wrong';
+                feedback.innerText = 'إجابة خاطئة! ❌ الإجابة الصحيحة محددة بالأخضر.';
+            }
+
+            feedback.style.display = 'block';
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            const resultScreen = document.getElementById('result-screen');
+            resultScreen.style.display = 'block';
+
+            document.getElementById('final-blue-score').innerText = blueScore;
+            document.getElementById('final-red-score').innerText = redScore;
+
+            const winnerTitle = document.getElementById('winner-title');
+            const winnerDesc = document.getElementById('winner-desc');
+
+            if (blueScore > redScore) {
+                winnerTitle.innerHTML = '🏆 فوز ساحق للفريق الأزرق!';
+                winnerTitle.style.color = 'var(--blue-team)';
+                winnerDesc.innerText = `مبروك للفريق الأزرق حصوله على ${blueScore} نقاط من 5! أداء متميز جداً.`;
+            } else if (redScore > blueScore) {
+                winnerTitle.innerHTML = '🏆 فوز ساحق للفريق الأحمر!';
+                winnerTitle.style.color = 'var(--red-team)';
+                winnerDesc.innerText = `مبروك للفريق الأحمر حصوله على ${redScore} نقاط من 5! أداء ممتاز وقوي.`;
+            } else {
+                winnerTitle.innerHTML = '🤝 تعادل ممتاز بين الفريقين!';
+                winnerTitle.style.color = '#0f172a';
+                winnerDesc.innerText = `حصل كلا الفريقين على ${blueScore} نقاط! أداء متكافئ وتنافس رائع.`;
+            }
+        }
+
+        function restartQuiz() {
+            currentIndex = 0;
+            blueScore = 0;
+            redScore = 0;
+            document.getElementById('blue-score').innerText = '0';
+            document.getElementById('red-score').innerText = '0';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            loadQuestion();
+        }
+
+        // Initialize quiz on load
+        loadQuestion();
+    </script>
+</body>
+</html>

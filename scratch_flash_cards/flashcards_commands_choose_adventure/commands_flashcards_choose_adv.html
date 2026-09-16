@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة أوامر سكراتش والبطاقات التعليمية</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            user-select: none;
+            direction: rtl; /* Explicit RTL enforcement */
+            text-align: right; /* Ensure all headers are strictly RTL */
+        }
+
+        /* Top Navigation */
+        .top-nav {
+            background-color: #4C97FF;
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .nav-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid transparent;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background-color: white;
+            color: #4C97FF;
+            border: 2px solid white;
+        }
+
+        /* Views Container */
+        .view-container {
+            display: none;
+            flex-grow: 1;
+            height: calc(100vh - 60px);
+        }
+        .view-container.active {
+            display: flex;
+        }
+
+        /* --- Original Sidebar & Workspace Styles --- */
+        .sidebar {
+            width: 120px;
+            background-color: #ffffff;
+            border-left: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            overflow-y: auto;
+        }
+
+        .category-btn {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: #4d4d4d;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background-color: #e6f0ff;
+        }
+
+        .circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+
+        .color-motion { background-color: #4C97FF; }
+        .color-looks { background-color: #9966FF; }
+        .color-sound { background-color: #CF63CF; }
+        .color-events { background-color: #FFBF00; }
+        .color-control { background-color: #FFAB19; }
+        .color-sensing { background-color: #5CB1D6; }
+        .color-operators { background-color: #59C059; }
+        .color-variables { background-color: #FF8C1A; }
+
+        .workspace {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+
+        .block-section {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .block-section.active {
+            display: flex;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            width: 100%;
+            text-align: right; /* LTR header fix */
+        }
+
+        /* Block styling omitted for brevity, keeping original identical */
+        .scratch-block {
+            background-color: var(--block-color);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: grab;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+            min-height: 36px;
+        }
+        .scratch-block.command { border-radius: 4px; padding: 8px 12px; }
+        .scratch-block.command::before { content: ''; position: absolute; top: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 4px 4px 0 0; }
+        .scratch-block.command::after { content: ''; position: absolute; bottom: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); z-index: 1; }
+        .scratch-block.hat { border-radius: 12px 12px 4px 4px; padding: 12px 12px 8px 12px; }
+        .scratch-block.hat::after { content: ''; position: absolute; bottom: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); }
+        .scratch-block.reporter { border-radius: 20px; padding: 6px 16px; }
+        .scratch-block.boolean { clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0% 50%); padding: 6px 22px; filter: drop-shadow(0px 3px 0px rgba(0,0,0,0.2)); }
+        .scratch-block.c-block { border-radius: 4px; padding: 8px 12px 30px 12px; min-width: 130px; }
+        .scratch-block.c-block::before { content: ''; position: absolute; top: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 4px 4px 0 0; }
+        .scratch-block.c-block::after { content: ''; position: absolute; bottom: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); }
+        .c-block-mouth { position: absolute; bottom: 8px; right: 20px; left: -1px; height: 22px; background-color: #f9f9f9; border-top-right-radius: 4px; border-bottom-right-radius: 4px; box-shadow: inset 0px 2px 3px rgba(0,0,0,0.1); }
+        .c-block-mouth::before { content: ''; position: absolute; top: 0px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; }
+        .input-text { background-color: #ffffff; color: #333; padding: 2px 8px; border-radius: 12px; min-width: 15px; text-align: center; border: 1px solid rgba(0,0,0,0.2); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); font-weight: normal; }
+        .input-dropdown { background-color: rgba(0,0,0,0.15); color: white; padding: 2px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: normal; border: 1px solid rgba(0,0,0,0.1); }
+        .boolean-gap { background-color: rgba(0,0,0,0.15); width: 30px; height: 15px; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%); display: inline-block; }
+
+        /* --- Flashcard UI Styles --- */
+        #flashcards-view {
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            background-color: #f0f4f8;
+            width: 100%;
+        }
+
+        .controls-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .controls-header select {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+
+        .flashcard-container {
+            width: 600px;
+            height: 350px;
+            perspective: 1000px;
+            margin-bottom: 30px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            font-size: 24px;
+            line-height: 1.5;
+        }
+
+        .card-front {
+            background-color: white;
+            border-top: 8px solid #FFBF00;
+            color: #333;
+        }
+
+        .card-back {
+            background-color: #4C97FF;
+            color: white;
+            transform: rotateY(180deg);
+            border-top: 8px solid #3373CC;
+        }
+        
+        .card-hint {
+            font-size: 14px;
+            color: #888;
+            position: absolute;
+            bottom: 20px;
+        }
+        
+        .card-back .card-hint {
+            color: #e6f0ff;
+        }
+
+        .card-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #e6f0ff;
+        }
+        
+        #progress {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #666;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <div class="top-nav">
+        <button id="btn-workspace" class="nav-btn active" onclick="switchView('workspace')">دليل الأوامر</button>
+        <button id="btn-flashcards" class="nav-btn" onclick="switchView('flashcards')">البطاقات التعليمية</button>
+    </div>
+
+    <!-- Original Workspace View -->
+    <div id="workspace-view" class="view-container active">
+        <!-- Sidebar with categories -->
+        <div class="sidebar">
+            <button class="category-btn active" onclick="showCategory('motion', this)">
+                <div class="circle color-motion"></div>
+                الحركة
+            </button>
+            <button class="category-btn" onclick="showCategory('looks', this)">
+                <div class="circle color-looks"></div>
+                الهيئة
+            </button>
+            <button class="category-btn" onclick="showCategory('sound', this)">
+                <div class="circle color-sound"></div>
+                الصوت
+            </button>
+            <button class="category-btn" onclick="showCategory('events', this)">
+                <div class="circle color-events"></div>
+                الأحداث
+            </button>
+            <button class="category-btn" onclick="showCategory('control', this)">
+                <div class="circle color-control"></div>
+                التحكم
+            </button>
+            <button class="category-btn" onclick="showCategory('sensing', this)">
+                <div class="circle color-sensing"></div>
+                الاستشعار
+            </button>
+            <button class="category-btn" onclick="showCategory('operators', this)">
+                <div class="circle color-operators"></div>
+                العمليات
+            </button>
+            <button class="category-btn" onclick="showCategory('variables', this)">
+                <div class="circle color-variables"></div>
+                المتغيرات
+            </button>
+        </div>
+
+        <!-- Main Workspace displaying blocks -->
+        <div class="workspace">
+            <div id="motion" class="block-section active">
+                <h2 class="section-title">الحركة</h2>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">تحرك <span class="input-text">10</span> خطوة</div>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">استدر ↻ <span class="input-text">15</span> درجة</div>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">استدر ↺ <span class="input-text">15</span> درجة</div>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">ارتد إذا كنت عند الحافة</div>
+            </div>
+
+            <div id="looks" class="block-section">
+                <h2 class="section-title">الهيئة</h2>
+                <div class="scratch-block command" style="--block-color: #9966FF;">قل <span class="input-text">السلام عليكم!</span></div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">غير الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span></div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">الخلفية التالية</div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">اظهر</div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">اختف</div>
+            </div>
+
+            <div id="sound" class="block-section">
+                <h2 class="section-title">الصوت</h2>
+                <div class="scratch-block command" style="--block-color: #CF63CF;">شغل الصوت <span class="input-dropdown">Pop ▾</span> وانتظر انتهاءه</div>
+            </div>
+
+            <div id="events" class="block-section">
+                <h2 class="section-title">الأحداث</h2>
+                <div class="scratch-block hat" style="--block-color: #FFBF00;">عند نقر ⚑</div>
+                <div class="scratch-block hat" style="--block-color: #FFBF00;">عند نقر هذا الكائن</div>
+                <div class="scratch-block hat" style="--block-color: #FFBF00;">عندما تتبدل الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span></div>
+            </div>
+
+            <div id="control" class="block-section">
+                <h2 class="section-title">التحكم</h2>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر <span class="input-text">10</span> مرة <div class="c-block-mouth"></div></div>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر باستمرار <div class="c-block-mouth"></div></div>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">إذا <span class="boolean-gap"></span> <div class="c-block-mouth"></div></div>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر حتى <span class="boolean-gap"></span> <div class="c-block-mouth"></div></div>
+            </div>
+
+            <div id="sensing" class="block-section">
+                <h2 class="section-title">الاستشعار</h2>
+                <div class="scratch-block boolean" style="--block-color: #5CB1D6;">ملامس لـ <span class="input-dropdown">Gobo ▾</span> ؟</div>
+            </div>
+
+            <div id="operators" class="block-section">
+                <h2 class="section-title">العمليات</h2>
+                <div class="scratch-block reporter" style="--block-color: #59C059;"><span class="input-text">50</span> = <span class="input-text">&nbsp;&nbsp;&nbsp;</span></div>
+            </div>
+
+            <div id="variables" class="block-section">
+                <h2 class="section-title">المتغيرات</h2>
+                <div class="scratch-block command" style="--block-color: #FF8C1A;">اجعل <span class="input-dropdown">متغير ▾</span> مساويا <span class="input-text">0</span></div>
+                <div class="scratch-block command" style="--block-color: #FF8C1A;">غير <span class="input-dropdown">متغير ▾</span> بمقدار <span class="input-text">1</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flashcards View -->
+    <div id="flashcards-view" class="view-container">
+        <div class="controls-header">
+            <label for="set-select">اختر مجموعة الأسئلة:</label>
+            <select id="set-select" onchange="loadSet()">
+                <option value="set1">المجموعة الأولى (Set 1)</option>
+                <option value="set2">المجموعة الثانية (Set 2)</option>
+            </select>
+        </div>
+
+        <div class="flashcard-container" onclick="flipCard()">
+            <div class="flashcard" id="card">
+                <div class="card-face card-front">
+                    <div id="q-text">سؤال</div>
+                    <div class="card-hint">انقر لرؤية الإجابة</div>
+                </div>
+                <div class="card-face card-back">
+                    <div id="a-text">إجابة</div>
+                    <div class="card-hint">انقر للعودة للسؤال</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-buttons">
+            <button class="action-btn" onclick="prevCard()">السابق</button>
+            <button class="action-btn" onclick="nextCard()">التالي</button>
+        </div>
+        
+        <div id="progress">1 / 10</div>
+    </div>
+
+    <script>
+        // Data for flashcards
+        const sets = {
+            set1: [
+                {q: 'أين تجد أمر "تحرك 10 خطوة"؟', a: 'في قسم "الحركة"'},
+                {q: 'أين تجد أمر "عند نقر ⚑"؟', a: 'في قسم "الأحداث"'},
+                {q: 'أين تجد أمر "كرر باستمرار"؟', a: 'في قسم "التحكم"'},
+                {q: 'أين تجد أمر "ملامس لـ Gobo ؟"؟', a: 'في قسم "الاستشعار"'},
+                {q: 'أين تجد أمر "اظهر"؟', a: 'في قسم "الهيئة"'},
+                {q: 'يريد علي أن يجعل شخصيته تتحرك باستمرار دون توقف في اللعبة. ما هو الأمر المناسب ومن أي قسم؟', a: 'الأمر "كرر باستمرار" من قسم "التحكم"'},
+                {q: 'تريد عالية أن تجعل القطة تقول "السلام عليكم!" عندما تبدأ اللعبة. ما هي الأوامر ومن أين؟', a: 'نحتاج أمر "عند نقر ⚑" من قسم "الأحداث"، وأمر "قل السلام عليكم!" من قسم "الهيئة"'},
+                {q: 'كيف نجعل الكائن يعود للوراء إذا وصل إلى نهاية الشاشة، وأين نجد الأمر؟', a: 'باستخدام الأمر "ارتد إذا كنت عند الحافة" من قسم "الحركة"'},
+                {q: 'نريد أن نحسب نتيجة اللاعب ونزيدها بمقدار 1 كلما فاز. ما هو الأمر ومن أين؟', a: 'الأمر "غير متغير بمقدار 1" من قسم "المتغيرات"'},
+                {q: 'ما هو الأمر الذي نستخدمه لتبديل مشهد اللعبة إلى مشهد آخر، ومن أي قسم؟', a: 'الأمر "غير الخلفية إلى backdrop1" من قسم "الهيئة"'}
+            ],
+            set2: [
+                {q: 'أين تجد أمر "قل السلام عليكم!"؟', a: 'في قسم "الهيئة"'},
+                {q: 'أين تجد أمر "اجعل متغير مساويا 0"؟', a: 'في قسم "المتغيرات"'},
+                {q: 'أين تجد أمر "كرر حتى"؟', a: 'في قسم "التحكم"'},
+                {q: 'أين تجد أمر "شغل الصوت Pop وانتظر انتهاءه"؟', a: 'في قسم "الصوت"'},
+                {q: 'أين تجد أمر "استدر ↻ 15 درجة"؟', a: 'في قسم "الحركة"'},
+                {q: 'يبرمج علي لعبة ويريد إخفاء الكائن السري حتى يكتشفه اللاعب. ما الأمر المستخدم لإخفائه ومن أين؟', a: 'الأمر "اختف" من قسم "الهيئة"'},
+                {q: 'تريد عالية التأكد من أن اللعبة تبدأ دائماً وعداد النقاط يساوي صفراً. ما الأمر ومن أين؟', a: 'الأمر "اجعل متغير مساويا 0" من قسم "المتغيرات"'},
+                {q: 'إذا أردنا أن يقوم الكائن بفعل معين فقط عندما يلمس كائناً آخر، ما الشرط المستخدم ومن أي قسم؟', a: 'أمر "ملامس لـ Gobo ؟" من قسم "الاستشعار" نضعه داخل أمر "إذا" من قسم "التحكم"'},
+                {q: 'ما هي الطريقة لجعل الكائن يصدر صوتاً كاملاً قبل الانتقال للخطوة التالية في البرمجة، ومن أين نحضر الأمر؟', a: 'استخدام الأمر "شغل الصوت Pop وانتظر انتهاءه" من قسم "الصوت"'},
+                {q: 'كيف نجعل الكائن يدور حول نفسه 10 مرات متتالية، ومن أين نجد الأوامر؟', a: 'دمج أمر "كرر 10 مرة" من قسم "التحكم" مع أمر "استدر ↻ 15 درجة" من قسم "الحركة"'}
+            ]
+        };
+
+        let currentSet = sets.set1;
+        let currentIndex = 0;
+
+        // Workspace Scripts
+        function showCategory(categoryId, buttonElement) {
+            const sections = document.querySelectorAll('.block-section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(categoryId).classList.add('active');
+            buttonElement.classList.add('active');
+        }
+
+        // View Switcher Script
+        function switchView(viewName) {
+            document.querySelectorAll('.view-container').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewName + '-view').classList.add('active');
+            document.getElementById('btn-' + viewName).classList.add('active');
+        }
+
+        // Flashcards Scripts
+        function loadSet() {
+            const setKey = document.getElementById('set-select').value;
+            currentSet = sets[setKey];
+            currentIndex = 0;
+            
+            // Ensure card is flipped back to front when loading new set
+            const card = document.getElementById('card');
+            card.classList.remove('is-flipped');
+            
+            setTimeout(updateCard, 150);
+        }
+
+        function updateCard() {
+            document.getElementById('q-text').innerText = currentSet[currentIndex].q;
+            document.getElementById('a-text').innerText = currentSet[currentIndex].a;
+            document.getElementById('progress').innerText = (currentIndex + 1) + " / " + currentSet.length;
+        }
+
+        function flipCard() {
+            document.getElementById('card').classList.toggle('is-flipped');
+        }
+
+        function nextCard() {
+            const card = document.getElementById('card');
+            card.classList.remove('is-flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % currentSet.length;
+                updateCard();
+            }, 200); // Wait for flip animation
+        }
+
+        function prevCard() {
+            const card = document.getElementById('card');
+            card.classList.remove('is-flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex - 1 + currentSet.length) % currentSet.length;
+                updateCard();
+            }, 200); // Wait for flip animation
+        }
+
+        // Initialize First Card
+        updateCard();
+    </script>
+</body>
+</html>

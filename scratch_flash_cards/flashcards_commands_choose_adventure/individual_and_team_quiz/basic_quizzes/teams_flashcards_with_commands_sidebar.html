@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحدي سكراتش - واجهة الأوامر الشاملة</title>
+    <style>
+        :root {
+            --blue-team: #2563eb;
+            --blue-bg: #eff6ff;
+            --red-team: #dc2626;
+            --red-bg: #fef2f2;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            padding: 20px;
+            gap: 20px;
+            user-select: none;
+        }
+
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        /* =========================================
+           Reference Panel (Identical to source 7)
+           ========================================= */
+        .reference-panel {
+            display: flex;
+            width: 50%;
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 120px;
+            background-color: #ffffff;
+            border-left: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            overflow-y: auto;
+        }
+
+        .category-btn {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: #4d4d4d;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background-color: #e6f0ff;
+        }
+
+        .circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+
+        .color-motion { background-color: #4C97FF; }
+        .color-looks { background-color: #9966FF; }
+        .color-sound { background-color: #CF63CF; }
+        .color-events { background-color: #FFBF00; }
+        .color-control { background-color: #FFAB19; }
+        .color-sensing { background-color: #5CB1D6; }
+        .color-operators { background-color: #59C059; }
+        .color-variables { background-color: #FF8C1A; }
+
+        .workspace {
+            flex-grow: 1;
+            padding: 30px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+
+        .block-section {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+        }
+        .block-section.active {
+            display: flex;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            width: 100%;
+        }
+
+        /* Scratch Blocks Styling from source 7 */
+        .scratch-block {
+            background-color: var(--block-color);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: grab;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+            border: 1px solid rgba(0,0,0,0.1);
+            min-height: 36px;
+        }
+
+        .scratch-block.command {
+            border-radius: 4px;
+            padding: 8px 12px;
+        }
+        .scratch-block.command::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 4px 4px 0 0;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            border-left: 1px solid rgba(0,0,0,0.1);
+        }
+        .scratch-block.command::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+            border-right: 1px solid rgba(0,0,0,0.1);
+            border-left: 1px solid rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+
+        .scratch-block.hat {
+            border-radius: 12px 12px 4px 4px;
+            padding: 12px 12px 8px 12px;
+        }
+        .scratch-block.hat::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+        }
+
+        .scratch-block.reporter {
+            border-radius: 20px;
+            padding: 6px 16px;
+        }
+
+        .scratch-block.boolean {
+            clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0% 50%);
+            padding: 6px 22px;
+            border-radius: 0;
+            box-shadow: none;
+            filter: drop-shadow(0px 3px 0px rgba(0,0,0,0.2));
+            border: none;
+        }
+
+        .scratch-block.c-block {
+            border-radius: 4px;
+            padding: 8px 12px 30px 12px;
+            min-width: 130px;
+        }
+        .scratch-block.c-block::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 4px 4px 0 0;
+        }
+        .scratch-block.c-block::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0px 3px 0px rgba(0,0,0,0.2);
+        }
+        .c-block-mouth {
+            position: absolute;
+            bottom: 8px;
+            right: 20px;
+            left: -1px;
+            height: 22px;
+            background-color: #f9f9f9;
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            box-shadow: inset 0px 2px 3px rgba(0,0,0,0.1);
+        }
+        .c-block-mouth::before {
+            content: '';
+            position: absolute;
+            top: 0px;
+            right: 15px;
+            width: 16px;
+            height: 5px;
+            background-color: var(--block-color);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .input-text {
+            background-color: #ffffff;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 12px;
+            min-width: 15px;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.2);
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+            font-weight: normal;
+            text-shadow: none;
+            display: inline-block;
+        }
+
+        .input-dropdown {
+            background-color: rgba(0,0,0,0.15);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: normal;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .boolean-gap {
+            background-color: rgba(0,0,0,0.15);
+            width: 30px;
+            height: 15px;
+            clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%);
+            display: inline-block;
+        }
+
+        /* =========================================
+           Quiz Container Styles
+           ========================================= */
+        .quiz-container {
+            width: 50%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: #f8fafc;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .team-score {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: 12px;
+            min-width: 140px;
+            transition: all 0.3s ease;
+        }
+
+        .team-blue {
+            background-color: var(--blue-bg);
+            border: 2px solid var(--blue-team);
+            color: var(--blue-team);
+        }
+
+        .team-red {
+            background-color: var(--red-bg);
+            border: 2px solid var(--red-team);
+            color: var(--red-team);
+        }
+
+        .team-score.active-turn {
+            transform: scale(1.06);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .team-name { font-size: 1.1rem; font-weight: 700; }
+        .score-val { font-size: 2rem; font-weight: 800; }
+
+        .turn-badge {
+            text-align: center;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #fff;
+            background: #64748b;
+        }
+
+        .turn-badge.blue { background-color: var(--blue-team); }
+        .turn-badge.red { background-color: var(--red-team); }
+
+        .quiz-body {
+            padding: 30px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .question-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #0f172a;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-color);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: #94a3b8;
+            background-color: #f8fafc;
+        }
+
+        .option-btn.correct {
+            background-color: #dcfce7 !important;
+            border-color: #16a34a !important;
+            color: #15803d !important;
+        }
+
+        .option-btn.incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #dc2626 !important;
+            color: #b91c1c !important;
+        }
+
+        .footer-action {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .next-btn {
+            background-color: #0f172a;
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+        }
+
+        .next-btn:hover { background-color: #334155; }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 50px 20px;
+            margin: auto;
+        }
+
+        .result-title { font-size: 2.2rem; font-weight: 800; margin-bottom: 20px; }
+        .winner-announcement { font-size: 1.6rem; font-weight: 700; margin-bottom: 25px; padding: 18px; border-radius: 14px; }
+        .winner-blue { background: var(--blue-bg); color: var(--blue-team); border: 2px solid var(--blue-team); }
+        .winner-red { background: var(--red-bg); color: var(--red-team); border: 2px solid var(--red-team); }
+        .winner-tie { background: #f1f5f9; color: #475569; border: 2px solid #94a3b8; }
+        
+        .restart-btn {
+            background-color: #0f172a;
+            color: #fff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 900px) {
+            .main-wrapper { flex-direction: column; height: auto; }
+            .reference-panel, .quiz-container { width: 100%; height: 500px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <!-- لوحة المرجع (مطابقة للملف المرفق scratch_common_commands_3.html) -->
+    <div class="reference-panel">
+        <div class="sidebar">
+            <button class="category-btn active" onclick="showCategory('motion', this)">
+                <div class="circle color-motion"></div>الحركة
+            </button>
+            <button class="category-btn" onclick="showCategory('looks', this)">
+                <div class="circle color-looks"></div>الهيئة
+            </button>
+            <button class="category-btn" onclick="showCategory('sound', this)">
+                <div class="circle color-sound"></div>الصوت
+            </button>
+            <button class="category-btn" onclick="showCategory('events', this)">
+                <div class="circle color-events"></div>الأحداث
+            </button>
+            <button class="category-btn" onclick="showCategory('control', this)">
+                <div class="circle color-control"></div>التحكم
+            </button>
+            <button class="category-btn" onclick="showCategory('sensing', this)">
+                <div class="circle color-sensing"></div>الاستشعار
+            </button>
+            <button class="category-btn" onclick="showCategory('operators', this)">
+                <div class="circle color-operators"></div>العمليات
+            </button>
+            <button class="category-btn" onclick="showCategory('variables', this)">
+                <div class="circle color-variables"></div>المتغيرات
+            </button>
+        </div>
+
+        <div class="workspace">
+            <!-- الحركة (Motion) -->
+            <div id="motion" class="block-section active">
+                <h2 class="section-title">الحركة</h2>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">تحرك <span class="input-text">10</span> خطوة</div>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">استدر ↻ <span class="input-text">15</span> درجة</div>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">استدر ↺ <span class="input-text">15</span> درجة</div>
+                <div class="scratch-block command" style="--block-color: #4C97FF;">ارتد إذا كنت عند الحافة</div>
+            </div>
+
+            <!-- الهيئة (Looks) -->
+            <div id="looks" class="block-section">
+                <h2 class="section-title">الهيئة</h2>
+                <div class="scratch-block command" style="--block-color: #9966FF;">قل <span class="input-text">السلام عليكم!</span></div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">غير الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span></div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">الخلفية التالية</div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">اظهر</div>
+                <div class="scratch-block command" style="--block-color: #9966FF;">اختف</div>
+            </div>
+
+            <!-- الصوت (Sound) -->
+            <div id="sound" class="block-section">
+                <h2 class="section-title">الصوت</h2>
+                <div class="scratch-block command" style="--block-color: #CF63CF;">شغل الصوت <span class="input-dropdown">Pop ▾</span> وانتظر انتهاءه</div>
+            </div>
+
+            <!-- الأحداث (Events) -->
+            <div id="events" class="block-section">
+                <h2 class="section-title">الأحداث</h2>
+                <div class="scratch-block hat" style="--block-color: #FFBF00;">عند نقر ⚑</div>
+                <div class="scratch-block hat" style="--block-color: #FFBF00;">عند نقر هذا الكائن</div>
+                <div class="scratch-block hat" style="--block-color: #FFBF00;">عندما تتبدل الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span></div>
+            </div>
+
+            <!-- التحكم (Control) -->
+            <div id="control" class="block-section">
+                <h2 class="section-title">التحكم</h2>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر <span class="input-text">10</span> مرة<div class="c-block-mouth"></div></div>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر باستمرار<div class="c-block-mouth"></div></div>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">إذا <span class="boolean-gap"></span><div class="c-block-mouth"></div></div>
+                <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر حتى <span class="boolean-gap"></span><div class="c-block-mouth"></div></div>
+            </div>
+
+            <!-- الاستشعار (Sensing) -->
+            <div id="sensing" class="block-section">
+                <h2 class="section-title">الاستشعار</h2>
+                <div class="scratch-block boolean" style="--block-color: #5CB1D6;">ملامس لـ <span class="input-dropdown">Gobo ▾</span> ؟</div>
+            </div>
+
+            <!-- العمليات (Operators) -->
+            <div id="operators" class="block-section">
+                <h2 class="section-title">العمليات</h2>
+                <div class="scratch-block reporter" style="--block-color: #59C059;"><span class="input-text">50</span> = <span class="input-text">&nbsp;&nbsp;&nbsp;</span></div>
+            </div>
+
+            <!-- المتغيرات (Variables) -->
+            <div id="variables" class="block-section">
+                <h2 class="section-title">المتغيرات</h2>
+                <div class="scratch-block command" style="--block-color: #FF8C1A;">اجعل <span class="input-dropdown">متغير ▾</span> مساويا <span class="input-text">0</span></div>
+                <div class="scratch-block command" style="--block-color: #FF8C1A;">غير <span class="input-dropdown">متغير ▾</span> بمقدار <span class="input-text">1</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة التحدي -->
+    <div class="quiz-container">
+        <div class="scoreboard" id="scoreboard">
+            <div class="team-score team-blue" id="blue-score-box">
+                <span class="team-name">الفريق الأزرق 💙</span>
+                <span class="score-val" id="blue-score">0</span>
+            </div>
+            <div class="turn-badge" id="turn-badge">دور الفريق الأزرق</div>
+            <div class="team-score team-red" id="red-score-box">
+                <span class="team-name">الفريق الأحمر ❤️</span>
+                <span class="score-val" id="red-score">0</span>
+            </div>
+        </div>
+
+        <div class="quiz-body" id="quiz-body">
+            <div>
+                <div class="question-meta">
+                    <span id="question-number">السؤال 1 من 10</span>
+                    <span id="question-target">المستهدف: الفريق الأزرق</span>
+                </div>
+                <div class="question-text" id="question-text">جاري تحميل السؤال...</div>
+                <div class="options-grid" id="options-grid"></div>
+            </div>
+            <div class="footer-action">
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">السؤال التالي ←</button>
+            </div>
+        </div>
+
+        <div class="result-screen" id="result-screen">
+            <div class="result-title">🎉 انتهاء التحدي!</div>
+            <div class="winner-announcement" id="winner-announcement"></div>
+            <p style="margin-bottom: 25px; font-size: 1.15rem;" id="final-score-breakdown"></p>
+            <button class="restart-btn" onclick="restartQuiz()">إعادة التحدي 🔄</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // وظيفة تبديل الأقسام الخاصة بالشريط الجانبي
+    function showCategory(categoryId, buttonElement) {
+        const sections = document.querySelectorAll('.block-section');
+        sections.forEach(section => {
+            section.classList.remove('active');
+        });
+
+        const buttons = document.querySelectorAll('.category-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        document.getElementById(categoryId).classList.add('active');
+        buttonElement.classList.add('active');
+    }
+
+    // بنك الأسئلة المخصص بالصيغتين المطلوبة فقط
+    const questions = [
+        {
+            team: 'blue',
+            question: 'أين توجد هذه اللبنة: "تحرك 10 خطوة" ؟',
+            options: ["الحركة (Motion)", "الهيئة (Looks)", "التحكم (Control)", "الأحداث (Events)"],
+            correct: 0
+        },
+        {
+            team: 'red',
+            question: 'أي لبنة تستخدم لجعل الكائن يقول رسالة وأين توجد؟',
+            options: ['"قل السلام عليكم!" في قسم الهيئة', '"شغل الصوت" في قسم الصوت', '"اظهر" في قسم الهيئة', '"عند نقر ⚑" في قسم الأحداث'],
+            correct: 0
+        },
+        {
+            team: 'blue',
+            question: 'أين توجد هذه اللبنة: "عند نقر ⚑" ؟',
+            options: ["التحكم (Control)", "الأحداث (Events)", "الاستشعار (Sensing)", "الحركة (Motion)"],
+            correct: 1
+        },
+        {
+            team: 'red',
+            question: 'أي لبنة تستخدم لتكرار الأوامر بلا توقف وأين توجد؟',
+            options: ['"كرر 10 مرة" في قسم التحكم', '"كرر باستمرار" في قسم التحكم', '"إذا...فـ" في قسم التحكم', '"استدر ↻ 15 درجة" في قسم الحركة'],
+            correct: 1
+        },
+        {
+            team: 'blue',
+            question: 'أين توجد هذه اللبنة: "ملامس لـ (مؤشر الفأرة) ؟" ؟',
+            options: ["العمليات (Operators)", "التحكم (Control)", "الاستشعار (Sensing)", "الهيئة (Looks)"],
+            correct: 2
+        },
+        {
+            team: 'red',
+            question: 'أي لبنة تستخدم لاختبار شرط معين وأين توجد؟',
+            options: ['"إذا ... فـ" في قسم التحكم', '"كرر حتى" في قسم التحكم', '"عند نقر هذا الكائن" في قسم الأحداث', '"50 = " في قسم العمليات'],
+            correct: 0
+        },
+        {
+            team: 'blue',
+            question: 'أين توجد هذه اللبنة: "اجعل متغير مساويا 0" ؟',
+            options: ["العمليات (Operators)", "الاستشعار (Sensing)", "المتغيرات (Variables)", "الأحداث (Events)"],
+            correct: 2
+        },
+        {
+            team: 'red',
+            question: 'أي لبنة تستخدم لتغيير خلفية المنصة وأين توجد؟',
+            options: ['"الخلفية التالية" في قسم الهيئة', '"غير الخلفية إلى" في قسم الهيئة', '"اظهر" في قسم الهيئة', '"ارتد إذا كنت عند الحافة" في قسم الحركة'],
+            correct: 1
+        },
+        {
+            team: 'blue',
+            question: 'أين توجد هذه اللبنة: "50 = [ ]" ؟',
+            options: ["التحكم (Control)", "المتغيرات (Variables)", "الاستشعار (Sensing)", "العمليات (Operators)"],
+            correct: 3
+        },
+        {
+            team: 'red',
+            question: 'أي لبنة تستخدم لإخفاء الكائن وأين توجد؟',
+            options: ['"اختف" في قسم الهيئة', '"اظهر" في قسم الهيئة', '"أوقف الكل" في قسم التحكم', '"امسح" في قسم القلم'],
+            correct: 0
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let blueScore = 0;
+    let redScore = 0;
+    let answered = false;
+
+    function loadQuestion() {
+        answered = false;
+        const q = questions[currentQuestionIndex];
+        const isBlue = q.team === 'blue';
+
+        const turnBadge = document.getElementById('turn-badge');
+        const blueBox = document.getElementById('blue-score-box');
+        const redBox = document.getElementById('red-score-box');
+
+        if (isBlue) {
+            turnBadge.textContent = "دور: الفريق الأزرق 💙";
+            turnBadge.className = "turn-badge blue";
+            blueBox.classList.add('active-turn');
+            redBox.classList.remove('active-turn');
+        } else {
+            turnBadge.textContent = "دور: الفريق الأحمر ❤️";
+            turnBadge.className = "turn-badge red";
+            redBox.classList.add('active-turn');
+            blueBox.classList.remove('active-turn');
+        }
+
+        document.getElementById('question-number').textContent = `السؤال ${currentQuestionIndex + 1} من 10`;
+        document.getElementById('question-target').textContent = `المستهدف: ${isBlue ? 'الفريق الأزرق' : 'الفريق الأحمر'}`;
+        document.getElementById('question-text').textContent = q.question;
+
+        const optionsGrid = document.getElementById('options-grid');
+        optionsGrid.innerHTML = '';
+        document.getElementById('next-btn').style.display = 'none';
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.onclick = () => selectOption(idx);
+            optionsGrid.appendChild(btn);
+        });
+    }
+
+    function selectOption(selectedIndex) {
+        if (answered) return;
+        answered = true;
+
+        const q = questions[currentQuestionIndex];
+        const buttons = document.querySelectorAll('.option-btn');
+
+        buttons.forEach((btn, idx) => {
+            btn.disabled = true;
+            if (idx === q.correct) {
+                btn.classList.add('correct');
+            } else if (idx === selectedIndex) {
+                btn.classList.add('incorrect');
+            }
+        });
+
+        if (selectedIndex === q.correct) {
+            if (q.team === 'blue') {
+                blueScore++;
+                document.getElementById('blue-score').textContent = blueScore;
+            } else {
+                redScore++;
+                document.getElementById('red-score').textContent = redScore;
+            }
+        }
+
+        document.getElementById('next-btn').style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-body').style.display = 'none';
+        document.getElementById('scoreboard').style.display = 'none';
+        
+        const resultScreen = document.getElementById('result-screen');
+        const winnerAnnounce = document.getElementById('winner-announcement');
+        const scoreBreakdown = document.getElementById('final-score-breakdown');
+
+        resultScreen.style.display = 'block';
+        scoreBreakdown.textContent = `الفريق الأزرق: ${blueScore} / 5 | الفريق الأحمر: ${redScore} / 5`;
+
+        if (blueScore > redScore) {
+            winnerAnnounce.textContent = "🏆 الفائز هو الفريق الأزرق!";
+            winnerAnnounce.className = "winner-announcement winner-blue";
+        } else if (redScore > blueScore) {
+            winnerAnnounce.textContent = "🏆 الفائز هو الفريق الأحمر!";
+            winnerAnnounce.className = "winner-announcement winner-red";
+        } else {
+            winnerAnnounce.textContent = "🤝 تعادل الفريقان!";
+            winnerAnnounce.className = "winner-announcement winner-tie";
+        }
+    }
+
+    function restartQuiz() {
+        currentQuestionIndex = 0;
+        blueScore = 0;
+        redScore = 0;
+        document.getElementById('blue-score').textContent = '0';
+        document.getElementById('red-score').textContent = '0';
+        document.getElementById('quiz-body').style.display = 'flex';
+        document.getElementById('scoreboard').style.display = 'flex';
+        document.getElementById('result-screen').style.display = 'none';
+        loadQuestion();
+    }
+
+    loadQuestion();
+</script>
+</body>
+</html>

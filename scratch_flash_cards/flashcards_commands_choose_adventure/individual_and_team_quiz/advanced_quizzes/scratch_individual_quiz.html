@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاختبار الفردي - سكراتش 🎯</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-light: #e0f2fe;
+            --primary-dark: #0369a1;
+            --accent: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --scratch-orange: #ffab19;
+            --correct-color: #16a34a;
+            --wrong-color: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            padding: 28px;
+            margin-top: 10px;
+            border: 3px solid #cbd5e1;
+            position: relative;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        /* Progress Header */
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            gap: 16px;
+        }
+
+        .progress-bar-bg {
+            flex: 1;
+            height: 14px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 10%;
+            background: linear-gradient(90deg, #38bdf8, #0284c7);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .score-pill {
+            background: #f1f5f9;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 15px;
+            color: #0369a1;
+            border: 2px solid #bae6fd;
+        }
+
+        /* Question Box */
+        .question-card {
+            background: #f8fafc;
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border-right: 6px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .question-num {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.5;
+        }
+
+        .scratch-code-block {
+            display: inline-block;
+            background: var(--scratch-orange);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 800;
+            margin: 4px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+        }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2.5px solid #cbd5e1;
+            padding: 16px 20px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #334155;
+            text-align: right;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: #f0f9ff;
+            transform: translateY(-2px);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+        }
+
+        .option-btn.correct {
+            background: #dcfce7 !important;
+            border-color: var(--correct-color) !important;
+            color: #14532d !important;
+        }
+
+        .option-btn.wrong {
+            background: #fee2e2 !important;
+            border-color: var(--wrong-color) !important;
+            color: #7f1d1d !important;
+        }
+
+        .option-prefix {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 800;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Controls / Footer */
+        .footer-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+        }
+
+        .next-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Feedback box */
+        .feedback-box {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            display: none;
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        .feedback-box.correct {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .feedback-box.wrong {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* Final Result View */
+        .result-screen {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+        }
+
+        .stars-container {
+            font-size: 48px;
+            margin-bottom: 12px;
+            color: #f59e0b;
+        }
+
+        .score-display {
+            font-size: 54px;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 12px 0;
+        }
+
+        .result-message {
+            font-size: 20px;
+            font-weight: 800;
+            color: #334155;
+            margin-bottom: 24px;
+        }
+
+        .restart-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 14px;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            transition: all 0.2s;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            background: var(--primary-dark);
+        }
+
+        .top-nav {
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #475569;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .nav-link:hover {
+            color: #0f172a;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="top-nav">
+            <a href="index.html" class="nav-link">➔ العودة للقائمة الرئيسية</a>
+            <span style="font-weight:700; font-size:14px; color:#64748b;">اختبار فردي (10 أسئلة)</span>
+        </div>
+
+        <!-- Header -->
+        <header>
+            <h1>اختبار سكراتش الفردي 🎯</h1>
+            <p class="subtitle">حل الأسئلة التالية بمفردك واختبر مستواك البرمجي (10 أسئلة)</p>
+        </header>
+
+        <div id="quiz-screen">
+            <!-- Progress Bar & Score Pill -->
+            <div class="progress-container">
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+                <div class="score-pill" id="score-pill">النقاط: 0 / 10</div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="question-card">
+                <div class="question-num" id="q-num-text">السؤال 1 من 10</div>
+                <div class="question-text" id="q-text">جاري تحميل السؤال...</div>
+            </div>
+
+            <!-- Options -->
+            <div class="options-grid" id="options-container">
+                <!-- Options injected by JS -->
+            </div>
+
+            <!-- Footer Controls -->
+            <div class="footer-controls">
+                <div class="feedback-box" id="feedback"></div>
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">السؤال التالي ➔</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen" id="result-screen">
+            <div class="stars-container" id="stars-display">⭐⭐⭐</div>
+            <h2 style="font-size: 28px; font-weight: 900; color: #0f172a;">اكتمل الاختبار!</h2>
+            <div class="score-display" id="final-score">0 / 10</div>
+            <div class="result-message" id="result-message">عمل ممتاز!</div>
+
+            <button class="restart-btn" onclick="restartQuiz()">إعادة الاختبار 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // Audio Synth for feedback
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(isCorrect) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (isCorrect) {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.15); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, audioCtx.currentTime + 0.3); // G5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                osc.frequency.exponentialRampToValueAtTime(130.81, audioCtx.currentTime + 0.3); // C3
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            }
+        }
+
+        // 10 Individual Questions
+        const questions = [
+            {
+                question: "ما الفرق بين اللبنة <span class='scratch-code-block' style='background:#9966ff;'>قل [مرحباً!]</span> واللبنة <span class='scratch-code-block' style='background:#9966ff;'>قل [مرحباً!] لمدة [2] ثانية</span>؟",
+                options: [
+                    "الأولى تظهر الشاشة باللون الأسود والثانية باللون الأبيض.",
+                    "الأولى تبقى فقاعة الكلام مستمرة حتى أمر آخر، بينما الثانية تختفي بعد ثانيتين.",
+                    "لا يوجد أي فرق بينهما على الإطلاق.",
+                    "اللبنة الثانية تشغل صوتاً تلقائياً أثناء الحديث."
+                ],
+                correct: 1
+            },
+            {
+                question: "أي من اللبنات التالية تُعتبر لبنة شرطية (Conditional Statement) في سكراتش؟",
+                options: [
+                    "إذا ... فإن (If ... then)",
+                    "انزلق خلال (1) ثانية إلى موضع عشوائي",
+                    "غير تأثير اللون بمقدار (25)",
+                    "شغل صوت قطة حتى الانتهاء"
+                ],
+                correct: 0
+            },
+            {
+                question: "لإعادة الكائن إلى منتصف المنصة تماماً (المحورين x و y)، نستخدم اللبنة:",
+                options: [
+                    "اذهب إلى الموضع [س: 0 ، ص: 0]",
+                    "اذهب إلى الموضع [س: 240 ، ص: 180]",
+                    "اتجه نحو الاتجاه (90)",
+                    "غير مقدار س بمقدار 100"
+                ],
+                correct: 0
+            },
+            {
+                question: "ما العمل الذي تقوم به اللبنة <span class='scratch-code-block' style='background:#9966ff;'>اجعل الحجم مساوياً [150]%</span>؟",
+                options: [
+                    "تكبير حجم الكائن ليصبح أكبر بـ 50% من حجمه الأصلي.",
+                    "تصغير حجم الكائن لنصف حجمه الأصلي.",
+                    "تكرار حركة الكائن 150 مرة.",
+                    "تغيير موضع العمود ص إلى 150."
+                ],
+                correct: 0
+            },
+            {
+                question: "إذا أردنا حفظ عدد النقاط (Score) في لعبتك الخاصة، أي أدوات سكراتش نستخدم؟",
+                options: [
+                    "كائن جديد (Sprite)",
+                    "متغير جديد (Variable)",
+                    "خلفية جديدة (Backdrop)",
+                    "أداة القلم (Pen)"
+                ],
+                correct: 1
+            },
+            {
+                question: "ما فائدة اللبنة <span class='scratch-code-block' style='background:#ffab19;'>انتظر حتى <مفتاح [المسافة] مضغوط؟></span>؟",
+                options: [
+                    "توقف تنفيذ اللبنات التالية حتى يقوم اللاعب بالضغط على زر المسافة.",
+                    "تكرر حركة الكائن 10 مرات متتالية.",
+                    "تنهي مشروع اللعبة فوراً.",
+                    "تجعل الكائن يقفز تلقائياً للأعلى."
+                ],
+                correct: 0
+            },
+            {
+                question: "أي لون يُميز لبنات قسم 'التحكم' (Control) في واجهة سكراتش؟",
+                options: [
+                    "الأزرق الفاتح",
+                    "البرتقالي / الذهبي (Orange)",
+                    "الأرجواني / البنفسجي",
+                    "الأخضر الفاتح"
+                ],
+                correct: 1
+            },
+            {
+                question: "ما الناتج البرمجي للعملية الشرطية <span class='scratch-code-block' style='background:#59c059;'>( 10 > 5 )</span> في سكراتش؟",
+                options: [
+                    "True (صواب / صح)",
+                    "False (خطأ)",
+                    "15",
+                    "50"
+                ],
+                correct: 0
+            },
+            {
+                question: "ماذا يحدث عند تنفيذ اللبنة <span class='scratch-code-block' style='background:#9966ff;'>اخفِ</span> ثم اللبنة <span class='scratch-code-block' style='background:#4c97ff;'>تحرك (50) خطوة</span>؟",
+                options: [
+                    "يتتحرك الكائن 50 خطوة بالفعل لكنه يظل غير مرئي على الشاشة.",
+                    "يتوقف المشروع ويظهر خطأ برمجي.",
+                    "يظهر الكائن فوراً على المنصة.",
+                    "يتم حذف الكائن نهائياً من المشروع."
+                ],
+                correct: 0
+            },
+            {
+                question: "لبنة <span class='scratch-code-block' style='background:#9966ff;'>المظهر التالي</span> تُستخدم بصفة رئيسية لـ:",
+                options: [
+                    "تغيير اتجاه زاوية الحركة.",
+                    "عمل الرسوم المتحركة (Animation) مثل إظهار حركة الأقدام أثناء المشي.",
+                    "زيادة مستوى صوت الكائن.",
+                    "تغيير خلفية المنصة فقط."
+                ],
+                correct: 1
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+
+        function loadQuestion() {
+            const q = questions[currentIndex];
+            
+            // Update UI elements
+            document.getElementById('q-num-text').innerText = `السؤال ${currentIndex + 1} من 10`;
+            document.getElementById('q-text').innerHTML = q.question;
+            
+            // Progress Bar
+            const fillPct = ((currentIndex + 1) / questions.length) * 100;
+            document.getElementById('progress-fill').style.width = fillPct + '%';
+
+            // Hide next button & feedback
+            document.getElementById('next-btn').style.display = 'none';
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = 'none';
+
+            // Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const prefixes = ['أ', 'ب', 'جـ', 'د'];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `
+                    <span class="option-prefix">${prefixes[idx]}</span>
+                    <span>${opt}</span>
+                `;
+                btn.onclick = () => checkAnswer(idx);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIdx) {
+            const q = questions[currentIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('feedback');
+
+            // Disable all buttons
+            buttons.forEach(btn => btn.disabled = true);
+
+            const isCorrect = (selectedIdx === q.correct);
+            playSound(isCorrect);
+
+            if (isCorrect) {
+                buttons[selectedIdx].classList.add('correct');
+                feedback.className = 'feedback-box correct';
+                feedback.innerText = 'إجابة صحيحة! أحسنت 🌟';
+                score++;
+                document.getElementById('score-pill').innerText = `النقاط: ${score} / 10`;
+            } else {
+                buttons[selectedIdx].classList.add('wrong');
+                buttons[q.correct].classList.add('correct');
+                feedback.className = 'feedback-box wrong';
+                feedback.innerText = 'إجابة خاطئة! الإجابة الصحيحة باللون الأخضر.';
+            }
+
+            feedback.style.display = 'block';
+            document.getElementById('next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            const resultScreen = document.getElementById('result-screen');
+            resultScreen.style.display = 'block';
+
+            document.getElementById('final-score').innerText = `${score} / 10`;
+
+            const starsDisplay = document.getElementById('stars-display');
+            const resultMessage = document.getElementById('result-message');
+
+            if (score >= 9) {
+                starsDisplay.innerText = '⭐⭐⭐';
+                resultMessage.innerText = 'ممتاز جداً! أنت مبرمج سكراتش محترف 🏅';
+            } else if (score >= 6) {
+                starsDisplay.innerText = '⭐⭐';
+                resultMessage.innerText = 'نتيجة جيدة جداً! استمر في التمرين 👍';
+            } else {
+                starsDisplay.innerText = '⭐';
+                resultMessage.innerText = 'حاول مرة أخرى وسوف تتحسن أكثر بالتأكيد! 💪';
+            }
+        }
+
+        function restartQuiz() {
+            currentIndex = 0;
+            score = 0;
+            document.getElementById('score-pill').innerText = 'النقاط: 0 / 10';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            loadQuestion();
+        }
+
+        // Initialize quiz on load
+        loadQuestion();
+    </script>
+</body>
+</html>

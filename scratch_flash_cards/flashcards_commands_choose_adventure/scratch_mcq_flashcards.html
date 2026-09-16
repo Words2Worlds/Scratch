@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة أوامر سكراتش - أسئلة تفاعلية</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            user-select: none;
+        }
+
+        /* Sidebar Categories */
+        .sidebar {
+            width: 120px;
+            background-color: #ffffff;
+            border-left: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 10px;
+            overflow-y: auto;
+        }
+
+        .category-btn {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: #4d4d4d;
+            background-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background-color: #e6f0ff;
+        }
+
+        .circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-bottom: 8px;
+        }
+
+        /* Colors mapping for sidebar */
+        .color-motion { background-color: #4C97FF; }
+        .color-looks { background-color: #9966FF; }
+        .color-sound { background-color: #CF63CF; }
+        .color-events { background-color: #FFBF00; }
+        .color-control { background-color: #FFAB19; }
+        .color-sensing { background-color: #5CB1D6; }
+        .color-operators { background-color: #59C059; }
+        .color-variables { background-color: #FF8C1A; }
+        .color-mcq { background-color: #28a745; }
+
+        /* Main Workspace */
+        .workspace {
+            flex-grow: 1;
+            padding: 40px;
+            background-color: #f9f9f9;
+            overflow-y: auto;
+        }
+
+        .block-section {
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px; 
+        }
+        .block-section.active {
+            display: flex;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+            width: 100%;
+        }
+
+        /* --- Scratch Blocks Styling --- */
+        .scratch-block { background-color: var(--block-color); color: white; font-size: 14px; font-weight: bold; cursor: grab; position: relative; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); text-shadow: 1px 1px 0px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.1); min-height: 36px; }
+        .scratch-block.command { border-radius: 4px; padding: 8px 12px; }
+        .scratch-block.command::before { content: ''; position: absolute; top: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 4px 4px 0 0; border-top: 1px solid rgba(0,0,0,0.1); border-right: 1px solid rgba(0,0,0,0.1); border-left: 1px solid rgba(0,0,0,0.1); }
+        .scratch-block.command::after { content: ''; position: absolute; bottom: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); border-right: 1px solid rgba(0,0,0,0.1); border-left: 1px solid rgba(0,0,0,0.1); z-index: 1; }
+        .scratch-block.hat { border-radius: 12px 12px 4px 4px; padding: 12px 12px 8px 12px; }
+        .scratch-block.hat::after { content: ''; position: absolute; bottom: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); }
+        .scratch-block.reporter { border-radius: 20px; padding: 6px 16px; }
+        .scratch-block.boolean { clip-path: polygon(15px 0, calc(100% - 15px) 0, 100% 50%, calc(100% - 15px) 100%, 15px 100%, 0% 50%); padding: 6px 22px; border-radius: 0; box-shadow: none; filter: drop-shadow(0px 3px 0px rgba(0,0,0,0.2)); border: none; }
+        .scratch-block.c-block { border-radius: 4px; padding: 8px 12px 30px 12px; min-width: 130px; }
+        .scratch-block.c-block::before { content: ''; position: absolute; top: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 4px 4px 0 0; }
+        .scratch-block.c-block::after { content: ''; position: absolute; bottom: -5px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; box-shadow: 0px 3px 0px rgba(0,0,0,0.2); }
+        .c-block-mouth { position: absolute; bottom: 8px; right: 20px; left: -1px; height: 22px; background-color: #f9f9f9; border-top-right-radius: 4px; border-bottom-right-radius: 4px; box-shadow: inset 0px 2px 3px rgba(0,0,0,0.1); }
+        .c-block-mouth::before { content: ''; position: absolute; top: 0px; right: 15px; width: 16px; height: 5px; background-color: var(--block-color); border-radius: 0 0 4px 4px; }
+        .input-text { background-color: #ffffff; color: #333; padding: 2px 8px; border-radius: 12px; min-width: 15px; text-align: center; border: 1px solid rgba(0,0,0,0.2); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); font-weight: normal; text-shadow: none; display: inline-block; }
+        .input-dropdown { background-color: rgba(0,0,0,0.15); color: white; padding: 2px 10px; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: normal; border: 1px solid rgba(0,0,0,0.1); }
+        .boolean-gap { background-color: rgba(0,0,0,0.15); width: 30px; height: 15px; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0% 50%); display: inline-block; }
+
+        /* --- MCQ Styling --- */
+        .mcq-container { width: 100%; max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid #28a745; display: flex; flex-direction: column; gap: 20px; }
+        .mcq-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .mcq-question { font-size: 22px; font-weight: bold; color: #333; margin: 10px 0; line-height: 1.5; }
+        .mcq-options { display: flex; flex-direction: column; gap: 12px; }
+        .mcq-option { background-color: #f8f9fa; border: 2px solid #e9ecef; padding: 15px 20px; border-radius: 10px; cursor: pointer; font-size: 16px; font-family: inherit; text-align: right; transition: all 0.2s; color: #495057; font-weight: bold; }
+        .mcq-option:hover:not(:disabled) { background-color: #e2e6ea; border-color: #dae0e5; }
+        .mcq-option.correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724 !important; }
+        .mcq-option.incorrect { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24 !important; }
+        .mcq-option:disabled { cursor: default; }
+        
+        .mcq-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .mcq-btn { padding: 10px 25px; background-color: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; font-family: inherit; transition: opacity 0.2s; }
+        .mcq-btn:disabled { background-color: #ccc; cursor: not-allowed; opacity: 0.7; }
+        .mcq-btn:hover:not(:disabled) { opacity: 0.9; }
+        .set-selector { padding: 10px 15px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; cursor: pointer; background-color: #fff; }
+        
+        #mcqFeedback { font-size: 18px; font-weight: bold; min-height: 27px; text-align: center; margin-top: 10px; }
+        .feedback-correct { color: #28a745; }
+        .feedback-incorrect { color: #dc3545; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar with categories -->
+    <div class="sidebar">
+        <button class="category-btn active" onclick="showCategory('motion', this)">
+            <div class="circle color-motion"></div>
+            الحركة
+        </button>
+        <button class="category-btn" onclick="showCategory('looks', this)">
+            <div class="circle color-looks"></div>
+            الهيئة
+        </button>
+        <button class="category-btn" onclick="showCategory('sound', this)">
+            <div class="circle color-sound"></div>
+            الصوت
+        </button>
+        <button class="category-btn" onclick="showCategory('events', this)">
+            <div class="circle color-events"></div>
+            الأحداث
+        </button>
+        <button class="category-btn" onclick="showCategory('control', this)">
+            <div class="circle color-control"></div>
+            التحكم
+        </button>
+        <button class="category-btn" onclick="showCategory('sensing', this)">
+            <div class="circle color-sensing"></div>
+            الاستشعار
+        </button>
+        <button class="category-btn" onclick="showCategory('operators', this)">
+            <div class="circle color-operators"></div>
+            العمليات
+        </button>
+        <button class="category-btn" onclick="showCategory('variables', this)">
+            <div class="circle color-variables"></div>
+            المتغيرات
+        </button>
+        
+        <button class="category-btn" onclick="showCategory('mcq', this)" style="margin-top: 20px;">
+            <div class="circle color-mcq"></div>
+            اختبار
+        </button>
+    </div>
+
+    <!-- Main Workspace displaying blocks -->
+    <div class="workspace">
+        
+        <!-- الحركة (Motion) -->
+        <div id="motion" class="block-section active">
+            <h2 class="section-title">الحركة</h2>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">تحرك <span class="input-text">10</span> خطوة</div>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">استدر ↻ <span class="input-text">15</span> درجة</div>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">استدر ↺ <span class="input-text">15</span> درجة</div>
+            <div class="scratch-block command" style="--block-color: #4C97FF;">ارتد إذا كنت عند الحافة</div>
+        </div>
+
+        <!-- الهيئة (Looks) -->
+        <div id="looks" class="block-section">
+            <h2 class="section-title">الهيئة</h2>
+            <div class="scratch-block command" style="--block-color: #9966FF;">قل <span class="input-text">السلام عليكم!</span></div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">غير الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span></div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">الخلفية التالية</div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">اظهر</div>
+            <div class="scratch-block command" style="--block-color: #9966FF;">اختف</div>
+        </div>
+
+        <!-- الصوت (Sound) -->
+        <div id="sound" class="block-section">
+            <h2 class="section-title">الصوت</h2>
+            <div class="scratch-block command" style="--block-color: #CF63CF;">شغل الصوت <span class="input-dropdown">Pop ▾</span> وانتظر انتهاءه</div>
+        </div>
+
+        <!-- الأحداث (Events) -->
+        <div id="events" class="block-section">
+            <h2 class="section-title">الأحداث</h2>
+            <div class="scratch-block hat" style="--block-color: #FFBF00;">عند نقر ⚑</div>
+            <div class="scratch-block hat" style="--block-color: #FFBF00;">عند نقر هذا الكائن</div>
+            <div class="scratch-block hat" style="--block-color: #FFBF00;">عندما تتبدل الخلفية إلى <span class="input-dropdown">backdrop1 ▾</span></div>
+        </div>
+
+        <!-- التحكم (Control) -->
+        <div id="control" class="block-section">
+            <h2 class="section-title">التحكم</h2>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر <span class="input-text">10</span> مرة <div class="c-block-mouth"></div></div>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر باستمرار <div class="c-block-mouth"></div></div>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">إذا <span class="boolean-gap"></span> <div class="c-block-mouth"></div></div>
+            <div class="scratch-block c-block" style="--block-color: #FFAB19;">كرر حتى <span class="boolean-gap"></span> <div class="c-block-mouth"></div></div>
+        </div>
+
+        <!-- الاستشعار (Sensing) -->
+        <div id="sensing" class="block-section">
+            <h2 class="section-title">الاستشعار</h2>
+            <div class="scratch-block boolean" style="--block-color: #5CB1D6;">ملامس لـ <span class="input-dropdown">Gobo ▾</span> ؟</div>
+        </div>
+
+        <!-- العمليات (Operators) -->
+        <div id="operators" class="block-section">
+            <h2 class="section-title">العمليات</h2>
+            <div class="scratch-block reporter" style="--block-color: #59C059;"><span class="input-text">50</span> = <span class="input-text">&nbsp;&nbsp;&nbsp;</span></div>
+        </div>
+
+        <!-- المتغيرات (Variables) -->
+        <div id="variables" class="block-section">
+            <h2 class="section-title">المتغيرات</h2>
+            <div class="scratch-block command" style="--block-color: #FF8C1A;">اجعل <span class="input-dropdown">متغير ▾</span> مساويا <span class="input-text">0</span></div>
+            <div class="scratch-block command" style="--block-color: #FF8C1A;">غير <span class="input-dropdown">متغير ▾</span> بمقدار <span class="input-text">1</span></div>
+        </div>
+
+        <!-- MCQ Section -->
+        <div id="mcq" class="block-section">
+            <h2 class="section-title">اختبر معلوماتك (خيارات متعددة)</h2>
+            
+            <div class="mcq-container">
+                <div class="mcq-header">
+                    <select class="set-selector" id="setSelector" onchange="loadSet()">
+                        <option value="1">المجموعة الأولى</option>
+                        <option value="2">المجموعة الثانية</option>
+                    </select>
+                    <span id="cardCounter" style="font-size: 18px; font-weight: bold;" dir="ltr">1 / 10</span>
+                </div>
+                
+                <div class="mcq-question" id="mcqQuestion">جاري التحميل...</div>
+                
+                <div class="mcq-options" id="mcqOptions">
+                    <!-- Options will be generated here -->
+                </div>
+                
+                <div id="mcqFeedback"></div>
+
+                <div class="mcq-controls">
+                    <button class="mcq-btn" id="nextBtn" onclick="nextCard()">السؤال التالي</button>
+                    <button class="mcq-btn" id="prevBtn" onclick="prevCard()" style="background-color: #6c757d;">السؤال السابق</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="scratch_questions_set1_mcq.js"></script>
+    <script src="scratch_questions_set2_mcq.js"></script>
+    <script>
+        function showCategory(categoryId, buttonElement) {
+            const sections = document.querySelectorAll('.block-section');
+            sections.forEach(section => section.classList.remove('active'));
+
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(categoryId).classList.add('active');
+            buttonElement.classList.add('active');
+            
+            if (categoryId === 'mcq' && currentSet.length === 0) {
+                initMCQ();
+            }
+        }
+
+        let currentSet = [];
+        let currentIndex = 0;
+        let optionSelected = false;
+
+        function initMCQ() {
+            if (typeof set1Questions !== 'undefined') {
+                loadSet();
+            } else {
+                document.getElementById('mcqQuestion').innerText = "تحذير: لم يتم العثور على ملفات الأسئلة (.js). تأكد من وجودها في نفس المجلد.";
+            }
+        }
+
+        function loadSet() {
+            const selector = document.getElementById('setSelector');
+            currentSet = selector.value === "1" ? (typeof set1Questions !== 'undefined' ? set1Questions : []) : (typeof set2Questions !== 'undefined' ? set2Questions : []);
+            currentIndex = 0;
+            updateMCQ();
+        }
+
+        function updateMCQ() {
+            if (currentSet.length === 0) return;
+            optionSelected = false;
+            
+            const qData = currentSet[currentIndex];
+            document.getElementById('mcqQuestion').innerText = qData.q;
+            document.getElementById('cardCounter').innerText = (currentIndex + 1) + " / " + currentSet.length;
+            document.getElementById('mcqFeedback').innerText = "";
+            document.getElementById('mcqFeedback').className = "";
+            
+            const optionsContainer = document.getElementById('mcqOptions');
+            optionsContainer.innerHTML = '';
+            
+            qData.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'mcq-option';
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(index, qData.correctIndex, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === currentSet.length - 1;
+        }
+
+        function selectOption(selectedIndex, correctIndex, btnElement) {
+            if (optionSelected) return; // Prevent multiple clicks
+            optionSelected = true;
+            
+            const options = document.querySelectorAll('.mcq-option');
+            
+            // Disable all buttons
+            options.forEach(opt => opt.disabled = true);
+            
+            if (selectedIndex === correctIndex) {
+                btnElement.classList.add('correct');
+                const feedback = document.getElementById('mcqFeedback');
+                feedback.innerText = "إجابة صحيحة! أحسنت.";
+                feedback.className = "feedback-correct";
+            } else {
+                btnElement.classList.add('incorrect');
+                options[correctIndex].classList.add('correct');
+                const feedback = document.getElementById('mcqFeedback');
+                feedback.innerText = "إجابة خاطئة. الإجابة الصحيحة مظللة باللون الأخضر.";
+                feedback.className = "feedback-incorrect";
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateMCQ();
+            }
+        }
+
+        function nextCard() {
+            if (currentIndex < currentSet.length - 1) {
+                currentIndex++;
+                updateMCQ();
+            }
+        }
+    </script>
+</body>
+</html>
